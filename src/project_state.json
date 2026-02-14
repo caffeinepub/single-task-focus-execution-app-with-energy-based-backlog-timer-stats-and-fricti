@@ -1,15 +1,20 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
-  "summary": "React-based Focus & Execution Management System: a single-task focus app that shows one task at a time, supports energy-based task selection, backlog management, timer, step checklist, notes, stats, friction logging, plus a home-page brain-dump intake that can be converted into tasks and categorized by the built-in assistant, all with persistent async storage.",
+  "projectStateVersion": 21,
+  "summary": "React-based Focus & Execution Management System: a single-task focus app that shows one task at a time, supports energy-based task selection, backlog management, timer, step checklist, notes, stats, friction logging, plus a home-page brain-dump intake that can be converted into tasks; now includes AI-assisted parsing to turn freeform brain dumps into individual task items, with optional assistant-based categorization, all with persistent async storage.",
   "architectural_notes": [
     "Persist data via async window.storage with keys: 'current-task', 'tasks-backlog', 'current-energy', 'user-stats'.",
     "Task model includes: id, title, why, energy, steps, estimatedMinutes, completedSteps, note, lastFriction{reason,timestamp}.",
     "Stats model includes: completed, streak, totalTime (minutes).",
     "UI should update optimistically and save in background; all storage operations wrapped in try/catch; missing keys handled gracefully.",
-    "Build as a single React .jsx artifact using hooks (useState/useEffect) and lucide-react icons."
+    "Build as a single React .jsx artifact using hooks (useState/useEffect) and lucide-react icons.",
+    "Brain Dump should optionally support speech-to-text input (e.g., via Web Speech API) behind a mic button, appending transcribed text into the draft brain-dump field.",
+    "Brain Dump conversion must reliably segregate a single freeform dump into multiple discrete task items (not one combined task); allow AI-assisted parsing to improve splitting accuracy."
   ],
-  "known_issues": [],
+  "known_issues": [
+    "Focus button does not consistently navigate back to the Home page from all views/screens.",
+    "Streak details are not reliably visible/accessible from the Home page."
+  ],
   "isFixRequest": false,
   "existing_features": [
     {
@@ -171,6 +176,78 @@
         "REQ-20"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-microphone-button-to-the-brain-dump-draft-input-section-that-lets-the-user-dictate-a-brain-dump-using-in-browser-speech-to-text-and-inserts-the-transcript-into-the-brain-dump-textarea",
+      "title": "Add a microphone button to the Brain Dump draft input section that lets the user dictate a brain dump using in-browser speech-to-text and inserts the transcript into the Brain Dump textarea.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enhance-the-brain-dump-convert-to-items-behavior-so-freeform-brain-dump-text-is-converted-into-a-clean-list-of-individual-task-items-using-local-deterministic-ai-like-parsing-no-external-ai-llm-calls-the-parser-should-handle-common-real-world-input-formats-beyond-one-item-per-line-including-bullets-numbered-lists-1-1-semicolon-separated-phrases-and-multi-task-sentences-e-g-email-alex-and-schedule-dentist-then-pay-rent-by-splitting-them-into-separate-concise-items-while-avoiding-over-splitting-short-phrases",
+      "title": "Enhance the Brain Dump \"Convert to Items\" behavior so freeform brain dump text is converted into a clean list of individual task items using local, deterministic \"AI-like\" parsing (no external AI/LLM calls). The parser should handle common real-world input formats beyond one-item-per-line, including: bullets (•, -, *), numbered lists (\"1.\", \"1)\"), semicolon-separated phrases, and multi-task sentences (e.g., \"Email Alex and schedule dentist, then pay rent\") by splitting them into separate, concise items while avoiding over-splitting short phrases.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-focus-button-label-act-as-a-global-go-to-home-action-from-any-non-home-view-e-g-backlog-view-brain-dump-view-and-from-any-open-modal-pressing-the-focus-control-must-navigate-the-user-back-to-the-home-main-view",
+      "title": "Make the \"Focus\" button/label act as a global \"go to Home\" action: from any non-home view (e.g., Backlog view, Brain Dump view) and from any open modal, pressing the Focus control must navigate the user back to the Home (main) view.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-streak-details-are-always-visible-on-the-home-main-view-header-including-when-the-streak-value-is-0-using-clear-english-text",
+      "title": "Ensure streak details are always visible on the Home (main) view header, including when the streak value is 0, using clear English text.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-strengthen-the-brain-dump-task-extraction-so-freeform-brain-dump-text-is-reliably-segregated-into-multiple-individual-task-items-instead-of-being-treated-as-one-single-task-when-the-input-contains-common-multi-task-patterns-e-g-bullets-numbered-lists-semicolons-and-multi-clause-sentences-like-email-alex-and-schedule-dentist-then-pay-rent-this-must-remain-local-deterministic-and-must-not-use-external-ai-llm-calls",
+      "title": "Strengthen the Brain Dump task extraction so freeform brain dump text is reliably segregated into multiple individual task items (instead of being treated as one single task) when the input contains common multi-task patterns (e.g., bullets, numbered lists, semicolons, and multi-clause sentences like \"Email Alex and schedule dentist, then pay rent\"). This must remain local, deterministic, and must not use external AI/LLM calls.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-ui-element-that-displays-the-currently-selected-task-type-energy-as-a-fixed-chip-in-the-top-header-e-g-the-deep-focus-pill-shown-next-to-the-streak-so-that-after-the-user-selects-one-of-the-four-energy-types-that-energy-type-is-not-shown-anywhere-as-a-pinned-header-element",
+      "title": "Remove the UI element that displays the currently selected task type/energy as a fixed chip in the top header (e.g., the “Deep Focus” pill shown next to the streak) so that after the user selects one of the four energy types, that energy type is not shown anywhere as a pinned header element.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enhance-the-brain-dump-view-so-the-energy-assistant-can-take-a-full-brain-dump-and-produce-1-a-list-of-individual-task-items-and-2-an-automatic-categorization-for-each-item-into-the-four-existing-energy-types-deep-steady-low-none-in-one-user-action-while-keeping-the-existing-ability-to-manually-edit-an-item-s-text-and-override-its-category",
+      "title": "Enhance the Brain Dump view so the Energy Assistant can take a full brain dump and produce (1) a list of individual task items and (2) an automatic categorization for each item into the four existing energy types (DEEP, STEADY, LOW, NONE) in one user action, while keeping the existing ability to manually edit an item’s text and override its category.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-energy-assistant-action-button-from-the-brain-dump-view-ui-and-replace-it-with-a-simple-conversion-action-that-only-converts-the-brain-dump-draft-text-into-multiple-distinct-task-items-using-the-existing-local-deterministic-extraction-logic",
+      "title": "Remove the Energy Assistant action/button from the Brain Dump view UI and replace it with a simple conversion action that only converts the Brain Dump draft text into multiple distinct task items (using the existing local deterministic extraction logic).",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-brain-dump-view-helper-copy-to-remove-references-to-an-energy-assistant-and-describe-the-conversion-behavior-as-splitting-the-brain-dump-into-individual-tasks-english-user-facing-text",
+      "title": "Update Brain Dump view helper copy to remove references to an “Energy Assistant” and describe the conversion behavior as splitting the brain dump into individual tasks (English user-facing text).",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -237,6 +314,48 @@
     {
       "id": "AR-11",
       "summary": "Home-page Brain Dump page/section: capture freeform brain dump items, convert them into tasks list/backlog entries, and use the in-app assistant to help categorize items into energy categories before adding",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Add a microphone button in the Brain Dump view to capture spoken input and transcribe it into the brain dump text (speech-to-text)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Brain Dump: use AI to parse freeform brain dump text into a list of individual task items (auto-splitting/extraction)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Make the Focus button act as a global 'go to Home' action from any view/screen",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Ensure streak details are visible on the Home page (streak badge/value accessible from main view)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Use AI-assisted parsing to split Brain Dump input into multiple individual task items (avoid treating the whole dump as a single task)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Remove the task type/energy type selection and the fixed task type indicator from the page (do not show task type pinned at the top after initial selection)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Brain Dump UI: remove/hide the Energy Assistant button; keep Brain Dump focused on converting brain-dump points into multiple distinct task items",
       "reqIds": [],
       "status": "pending"
     }

@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, Lightbulb, ChevronDown, Check } from 'lucide-react';
+import { Trash2, Plus, ChevronDown, Check, Mic, MicOff, ListTodo } from 'lucide-react';
 import { classifyTaskEnergy, type EnergyCategory } from '../lib/taskEnergyClassifier';
+import { extractTasksFromBrainDump } from '../lib/brainDumpTaskExtractor';
+import { useSpeechToText } from '../hooks/useSpeechToText';
+import FocusHomeButton from './FocusHomeButton';
 
 interface BrainDumpItem {
   id: string;
   text: string;
   suggestedCategory: EnergyCategory;
   selectedCategory: EnergyCategory;
+  categoryOverridden: boolean; // Track if user manually changed category
 }
 
 interface BrainDumpViewProps {
   energyLevels: Record<string, { key: string; label: string; color: string }>;
   onAddToBacklog: (items: BrainDumpItem[]) => void;
   onClose: () => void;
+  onFocusHome?: () => void;
   initialDraft?: string;
   initialItems?: BrainDumpItem[];
   onDraftChange?: (draft: string) => void;
@@ -24,6 +29,7 @@ export default function BrainDumpView({
   energyLevels,
   onAddToBacklog,
   onClose,
+  onFocusHome,
   initialDraft = '',
   initialItems = [],
   onDraftChange,
@@ -34,6 +40,16 @@ export default function BrainDumpView({
   const [items, setItems] = useState<BrainDumpItem[]>(initialItems);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+
+  const {
+    isListening,
+    isSupported,
+    error: speechError,
+    startListening,
+    stopListening,
+    transcript,
+    resetTranscript,
+  } = useSpeechToText();
 
   // Persist draft changes
   useEffect(() => {
@@ -49,21 +65,34 @@ export default function BrainDumpView({
     }
   }, [items, onItemsChange]);
 
-  const handleConvertToItems = () => {
+  // Append transcript to draft text
+  useEffect(() => {
+    if (transcript) {
+      setDraftText(prev => {
+        const separator = prev && !prev.endsWith('\n') && !prev.endsWith(' ') ? ' ' : '';
+        return prev + separator + transcript;
+      });
+      resetTranscript();
+    }
+  }, [transcript, resetTranscript]);
+
+  // Cleanup: stop listening on unmount
+  useEffect(() => {
+    return () => {
+      if (isListening) {
+        stopListening();
+      }
+    };
+  }, [isListening, stopListening]);
+
+  const handleConvertToTasks = () => {
     if (!draftText.trim()) return;
 
-    // Split by newlines and common bullet separators
-    const lines = draftText
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0)
-      .map((line) => {
-        // Remove common bullet prefixes
-        return line.replace(/^[-•*]\s*/, '').trim();
-      })
-      .filter((line) => line.length > 0);
+    // Use the improved task extractor to parse the brain dump
+    const extractedTasks = extractTasksFromBrainDump(draftText);
 
-    const newItems: BrainDumpItem[] = lines.map((text) => {
+    // Create items with suggested categories
+    const newItems: BrainDumpItem[] = extractedTasks.map((text) => {
       const classification = classifyTaskEnergy(text);
       const category =
         'category' in classification ? classification.category : 'STEADY';
@@ -73,6 +102,7 @@ export default function BrainDumpView({
         text,
         suggestedCategory: category,
         selectedCategory: category,
+        categoryOverridden: false, // Initially not overridden
       };
     });
 
@@ -96,11 +126,13 @@ export default function BrainDumpView({
           const classification = classifyTaskEnergy(newText);
           const category =
             'category' in classification ? classification.category : 'STEADY';
+          
+          // Update suggestion always, but only update selected if not manually overridden
           return {
             ...item,
             text: newText,
             suggestedCategory: category,
-            selectedCategory: category,
+            selectedCategory: item.categoryOverridden ? item.selectedCategory : category,
           };
         }
         return item;
@@ -110,7 +142,11 @@ export default function BrainDumpView({
 
   const handleChangeCategoryForItem = (id: string, category: EnergyCategory) => {
     setItems(
-      items.map((item) => (item.id === id ? { ...item, selectedCategory: category } : item))
+      items.map((item) => 
+        item.id === id 
+          ? { ...item, selectedCategory: category, categoryOverridden: true } 
+          : item
+      )
     );
     setExpandedCategory(null);
   };
@@ -157,6 +193,14 @@ export default function BrainDumpView({
     }
   };
 
+  const handleToggleMicrophone = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F7F3E9] via-[#FDF8ED] to-[#F7F3E9]">
       {/* Header */}
@@ -186,6 +230,7 @@ export default function BrainDumpView({
             <h1 className="text-3xl font-['Crimson_Pro'] text-[#3E3833]">Brain Dump</h1>
           </div>
           <div className="flex items-center gap-2">
+            {onFocusHome && <FocusHomeButton onActivate={onFocusHome} />}
             {items.length > 0 && (
               <button
                 onClick={handleClearAll}
@@ -203,28 +248,65 @@ export default function BrainDumpView({
         {/* Draft Input Section */}
         <div className="bg-white rounded-2xl p-6 shadow-warm mb-8 animate-slide-up">
           <div className="flex items-center gap-2 mb-4">
-            <Lightbulb size={20} style={{ color: '#E07A5F' }} />
+            <ListTodo size={20} style={{ color: '#E07A5F' }} />
             <h2 className="text-xl font-['Crimson_Pro'] text-[#3E3833]">
               Capture your thoughts
             </h2>
           </div>
           <p className="text-sm text-[#8B7355] mb-4 font-['Work_Sans']">
-            Write down everything on your mind. Each line will become a separate item that you
-            can organize and add to your task list.
+            Write down everything on your mind. We'll automatically split your brain dump into individual tasks, each with a suggested energy category.
           </p>
+          
+          {/* Microphone Button and Status */}
+          <div className="flex items-center gap-3 mb-3">
+            {isSupported ? (
+              <>
+                <button
+                  onClick={handleToggleMicrophone}
+                  disabled={!isSupported}
+                  className={`p-3 rounded-xl transition-all shadow-warm hover:shadow-warm-lg ${
+                    isListening
+                      ? 'bg-[#E07A5F] text-white animate-pulse'
+                      : 'bg-[#F2A65A] text-white hover:scale-105'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={isListening ? 'Stop recording' : 'Start voice input'}
+                >
+                  {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                </button>
+                {isListening && (
+                  <span className="text-sm font-['Work_Sans'] text-[#E07A5F] animate-pulse">
+                    Listening...
+                  </span>
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-[#8B7355] font-['Work_Sans'] bg-[#8B7355]/5 px-3 py-2 rounded-lg">
+                Voice input is not supported in this browser. Please try Chrome, Edge, or Safari.
+              </div>
+            )}
+          </div>
+
+          {/* Speech Error Display */}
+          {speechError && (
+            <div className="mb-3 text-sm text-red-600 font-['Work_Sans'] bg-red-50 px-3 py-2 rounded-lg">
+              {speechError}
+            </div>
+          )}
+
           <textarea
             value={draftText}
             onChange={(e) => setDraftText(e.target.value)}
-            placeholder="Type or paste your thoughts here...&#10;• One idea per line&#10;• Use bullets or just newlines&#10;• Don't worry about organizing yet"
+            placeholder="Type or paste your thoughts here...&#10;• Buy groceries and then pick up dry cleaning&#10;1. Review the design doc&#10;2. Schedule team meeting&#10;Fix bug in login; update documentation&#10;&#10;Or click the microphone to speak!"
             className="w-full h-48 px-4 py-3 border border-[#8B7355]/20 rounded-xl font-['Work_Sans'] text-[#3E3833] placeholder:text-[#8B7355]/50 focus:outline-none focus:ring-2 focus:ring-[#E07A5F]/30 resize-none"
           />
           <div className="flex justify-end mt-4">
             <button
-              onClick={handleConvertToItems}
+              onClick={handleConvertToTasks}
               disabled={!draftText.trim()}
-              className="px-6 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] shadow-warm hover:shadow-warm-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="px-6 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] shadow-warm hover:shadow-warm-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
             >
-              Convert to Items
+              <ListTodo size={18} />
+              Convert to Tasks
             </button>
           </div>
         </div>
@@ -261,6 +343,8 @@ export default function BrainDumpView({
                 const energyLevel = energyLevels[item.selectedCategory];
                 const isSelected = selectedItems.has(item.id);
                 const isCategoryExpanded = expandedCategory === item.id;
+                const showSuggestionDiff = item.categoryOverridden && 
+                  item.suggestedCategory !== item.selectedCategory;
 
                 return (
                   <div
@@ -299,12 +383,8 @@ export default function BrainDumpView({
                             className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-[#8B7355]/5 transition-all"
                             style={{ backgroundColor: `${energyLevel.color}15` }}
                           >
-                            <div
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: energyLevel.color }}
-                            />
                             <span
-                              className="text-sm font-['Work_Sans']"
+                              className="text-xs font-['Work_Sans'] font-medium"
                               style={{ color: energyLevel.color }}
                             >
                               {energyLevel.label}
@@ -318,9 +398,19 @@ export default function BrainDumpView({
                             />
                           </button>
 
+                          {/* Show suggestion hint if overridden */}
+                          {showSuggestionDiff && (
+                            <div className="mt-1 text-xs text-[#8B7355] font-['Work_Sans'] flex items-center gap-1">
+                              <ListTodo size={12} />
+                              <span>
+                                Suggested: {energyLevels[item.suggestedCategory].label}
+                              </span>
+                            </div>
+                          )}
+
                           {/* Category Dropdown */}
                           {isCategoryExpanded && (
-                            <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-warm-lg border border-[#8B7355]/10 py-1 z-20 min-w-[200px]">
+                            <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-warm-lg border border-[#8B7355]/10 py-1 z-10 min-w-[160px]">
                               {Object.values(energyLevels).map((level) => (
                                 <button
                                   key={level.key}
@@ -330,21 +420,13 @@ export default function BrainDumpView({
                                       level.key as EnergyCategory
                                     )
                                   }
-                                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#8B7355]/5 transition-colors"
+                                  className="w-full px-4 py-2 text-left text-sm font-['Work_Sans'] hover:bg-[#8B7355]/5 transition-colors flex items-center gap-2"
                                 >
-                                  <div
+                                  <span
                                     className="w-2 h-2 rounded-full"
                                     style={{ backgroundColor: level.color }}
                                   />
-                                  <span
-                                    className="text-sm font-['Work_Sans']"
-                                    style={{ color: level.color }}
-                                  >
-                                    {level.label}
-                                  </span>
-                                  {item.selectedCategory === level.key && (
-                                    <Check size={14} className="ml-auto" style={{ color: level.color }} />
-                                  )}
+                                  {level.label}
                                 </button>
                               ))}
                             </div>
@@ -356,17 +438,17 @@ export default function BrainDumpView({
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleAddSingleItem(item)}
-                          className="p-2 hover:bg-[#E07A5F]/10 rounded-lg transition-all hover:scale-105"
+                          className="p-2 text-[#F2A65A] hover:bg-[#F2A65A]/10 rounded-lg transition-all"
                           title="Add to backlog"
                         >
-                          <Plus size={18} style={{ color: '#E07A5F' }} />
+                          <Plus size={18} />
                         </button>
                         <button
                           onClick={() => handleRemoveItem(item.id)}
-                          className="p-2 hover:bg-red-50 rounded-lg transition-all hover:scale-105"
+                          className="p-2 text-[#8B7355] hover:bg-[#8B7355]/10 rounded-lg transition-all"
                           title="Remove"
                         >
-                          <Trash2 size={18} className="text-red-400" />
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </div>
@@ -374,16 +456,6 @@ export default function BrainDumpView({
                 );
               })}
             </div>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {items.length === 0 && !draftText && (
-          <div className="text-center py-12 animate-slide-up">
-            <div className="text-6xl mb-4">💭</div>
-            <p className="text-[#8B7355] font-['Work_Sans']">
-              Start by writing down your thoughts above
-            </p>
           </div>
         )}
       </main>

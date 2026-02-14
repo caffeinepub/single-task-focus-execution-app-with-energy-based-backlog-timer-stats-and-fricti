@@ -2,10 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-new-brain-dump-view-section-accessible-from-the-main-home-screen-the-same-top-level-area-as-the-current-main-and-backlog-views-that-lets-the-user-paste-type-a-freeform-brain-dump-and-turns-it-into-individual-brain-dump-items",
-      "featureTitle": "Add a new Brain Dump view/section accessible from the main home screen (the same top-level area as the current 'main' and 'backlog' views) that lets the user paste/type a freeform brain dump and turns it into individual brain-dump items.",
+      "featureId": "feature-remove-the-energy-assistant-action-button-from-the-brain-dump-view-ui-and-replace-it-with-a-simple-conversion-action-that-only-converts-the-brain-dump-draft-text-into-multiple-distinct-task-items-using-the-existing-local-deterministic-extraction-logic",
+      "featureTitle": "Remove the Energy Assistant action/button from the Brain Dump view UI and replace it with a simple conversion action that only converts the Brain Dump draft text into multiple distinct task items (using the existing local deterministic extraction logic).",
       "files": [
-        "frontend/src/FocusExecutionApp.jsx",
         "frontend/src/components/BrainDumpView.tsx"
       ],
       "components": [
@@ -16,15 +15,14 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-17"
+        "REQ-28"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-integrate-the-existing-local-energy-categorization-assistant-heuristics-into-the-brain-dump-list-so-each-brain-dump-item-can-be-categorized-into-one-of-the-four-existing-energy-categories-deep-steady-low-none-and-show-the-suggested-category-per-item",
-      "featureTitle": "Integrate the existing local energy categorization assistant/heuristics into the Brain Dump list so each brain-dump item can be categorized into one of the four existing energy categories (DEEP, STEADY, LOW, NONE) and show the suggested category per item.",
+      "featureId": "feature-update-brain-dump-view-helper-copy-to-remove-references-to-an-energy-assistant-and-describe-the-conversion-behavior-as-splitting-the-brain-dump-into-individual-tasks-english-user-facing-text",
+      "featureTitle": "Update Brain Dump view helper copy to remove references to an “Energy Assistant” and describe the conversion behavior as splitting the brain dump into individual tasks (English user-facing text).",
       "files": [
-        "frontend/src/FocusExecutionApp.jsx",
         "frontend/src/components/BrainDumpView.tsx"
       ],
       "components": [
@@ -35,45 +33,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-18"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-allow-moving-one-or-multiple-brain-dump-items-into-the-existing-tasks-backlog-by-converting-them-into-task-objects-that-match-the-current-task-shape-used-in-the-app-and-persisting-them-into-the-existing-tasks-backlog-storage-key",
-      "featureTitle": "Allow moving one or multiple brain-dump items into the existing tasks backlog by converting them into Task objects that match the current Task shape used in the app and persisting them into the existing 'tasks-backlog' storage key.",
-      "files": [
-        "frontend/src/FocusExecutionApp.jsx",
-        "frontend/src/components/BrainDumpView.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-19"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-persist-brain-dump-draft-text-and-or-the-brain-dump-item-list-locally-so-the-user-does-not-lose-their-brain-dump-if-they-refresh-the-page-and-restore-it-on-load-with-graceful-handling-if-the-key-is-missing-or-corrupted",
-      "featureTitle": "Persist Brain Dump draft text and/or the Brain Dump item list locally so the user does not lose their brain dump if they refresh the page, and restore it on load with graceful handling if the key is missing or corrupted.",
-      "files": [
-        "frontend/src/FocusExecutionApp.jsx",
-        "frontend/src/components/BrainDumpView.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-20"
+        "REQ-29"
       ],
       "confidence": "high"
     }

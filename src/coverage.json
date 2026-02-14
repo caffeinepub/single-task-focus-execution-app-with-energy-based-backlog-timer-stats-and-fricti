@@ -1,64 +1,35 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T12:40:12.610Z",
+  "generatedAt": "2026-02-14T13:41:15.343Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-17",
-        "summary": "Add a new Brain Dump view/section accessible from the main home screen (the same top-level area as the current 'main' and 'backlog' views) that lets the user paste/type a freeform brain dump and turns it into individual brain-dump items.",
+        "id": "REQ-28",
+        "summary": "Remove the Energy Assistant action/button from the Brain Dump view UI and replace it with a simple conversion action that only converts the Brain Dump draft text into multiple distinct task items (using the existing local deterministic extraction logic).",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/BrainDumpView.tsx",
-          "frontend/src/FocusExecutionApp.jsx"
+          "frontend/src/lib/brainDumpTaskExtractor.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/BrainDumpView.tsx",
-          "frontend/src/FocusExecutionApp.jsx"
+          "frontend/src/components/BrainDumpView.tsx"
         ]
       },
       {
-        "id": "REQ-18",
-        "summary": "Integrate the existing local energy categorization assistant/heuristics into the Brain Dump list so each brain-dump item can be categorized into one of the four existing energy categories (DEEP, STEADY, LOW, NONE) and show the suggested category per item.",
+        "id": "REQ-29",
+        "summary": "Update Brain Dump view helper copy to remove references to an “Energy Assistant” and describe the conversion behavior as splitting the brain dump into individual tasks (English user-facing text).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/BrainDumpView.tsx",
-          "frontend/src/FocusExecutionApp.jsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/BrainDumpView.tsx",
-          "frontend/src/FocusExecutionApp.jsx"
-        ]
-      },
-      {
-        "id": "REQ-19",
-        "summary": "Allow moving one or multiple brain-dump items into the existing tasks backlog by converting them into Task objects that match the current Task shape used in the app and persisting them into the existing 'tasks-backlog' storage key.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/BrainDumpView.tsx",
-          "frontend/src/FocusExecutionApp.jsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/BrainDumpView.tsx",
-          "frontend/src/FocusExecutionApp.jsx"
-        ]
-      },
-      {
-        "id": "REQ-20",
-        "summary": "Persist Brain Dump draft text and/or the Brain Dump item list locally so the user does not lose their brain dump if they refresh the page, and restore it on load with graceful handling if the key is missing or corrupted.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/FocusExecutionApp.jsx",
           "frontend/src/components/BrainDumpView.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/FocusExecutionApp.jsx",
           "frontend/src/components/BrainDumpView.tsx"
         ]
       }
@@ -69,7 +40,6 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/FocusExecutionApp.jsx",
     "frontend/src/components/BrainDumpView.tsx",
     "project_state.json",
     "scratch/component-selection.json",
