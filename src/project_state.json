@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 23,
+  "projectStateVersion": 31,
   "summary": "React-based Focus & Execution Management System: a single-task focus app that shows one task at a time, supports energy-based task selection, backlog management, timer, step checklist, notes, stats, friction logging, plus a home-page brain-dump intake that can be converted into tasks; now includes AI-assisted parsing to turn freeform brain dumps into individual task items, with optional assistant-based categorization, all with persistent async storage.",
   "architectural_notes": [
     "Persist data via async window.storage with keys: 'current-task', 'tasks-backlog', 'current-energy', 'user-stats'.",
@@ -9,13 +9,16 @@
     "UI should update optimistically and save in background; all storage operations wrapped in try/catch; missing keys handled gracefully.",
     "Build as a single React .jsx artifact using hooks (useState/useEffect) and lucide-react icons.",
     "Brain Dump should optionally support speech-to-text input (e.g., via Web Speech API) behind a mic button, appending transcribed text into the draft brain-dump field.",
-    "Brain Dump conversion must reliably segregate a single freeform dump into multiple discrete task items (not one combined task); allow AI-assisted parsing to improve splitting accuracy."
+    "Brain Dump conversion must reliably segregate a single freeform dump into multiple discrete task items (not one combined task); allow AI-assisted parsing to improve splitting accuracy.",
+    "Brain Dump extractor should better split speech-to-text/run-on paragraphs by detecting multi-task markers (e.g., and/then/also/after that, semicolons, bullets) while avoiding over-splitting short phrases.",
+    "Brain Dump deletion/clearing must not remove or affect tasks already converted/added to 'tasks-backlog'; tasks and brain-dump state are persisted and managed independently."
   ],
   "known_issues": [
     "Focus button does not consistently navigate back to the Home page from all views/screens.",
-    "Streak details are not reliably visible/accessible from the Home page."
+    "Streak details are not reliably visible/accessible from the Home page.",
+    "Tasks created from Brain Dump are being removed/lost when the Brain Dump is deleted/cleared; converted tasks should remain in the tasks list/backlog."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-implement-the-focus-execution-management-system-ui-as-a-single-react-artifact-file-one-jsx-file-that-contains-all-screens-and-modals-described-energy-selection-empty-state-current-task-view-backlog-view-add-task-modal-stats-dashboard-modal-and-friction-log-modal-with-user-facing-text-in-english",
@@ -256,6 +259,70 @@
         "REQ-30"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-upgrade-the-brain-dump-convert-to-tasks-behavior-to-more-reliably-convert-an-entire-freeform-brain-dump-into-multiple-distinct-task-items-using-local-deterministic-ai-like-parsing-no-external-ai-llm-calls-ensuring-the-extractor-identifies-distinct-possible-tasks-across-the-whole-dump-instead-of-returning-a-single-combined-task-when-common-multi-task-patterns-are-present",
+      "title": "Upgrade the Brain Dump “Convert to Tasks” behavior to more reliably convert an entire freeform brain dump into multiple distinct task items using local, deterministic AI-like parsing (no external AI/LLM calls), ensuring the extractor identifies distinct possible tasks across the whole dump instead of returning a single combined task when common multi-task patterns are present.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-brain-dump-conversion-so-that-clicking-convert-to-tasks-reliably-extracts-multiple-distinct-task-items-from-a-single-spoken-freeform-brain-dump-often-transcribed-as-one-long-paragraph-instead-of-returning-one-combined-task",
+      "title": "Improve the Brain Dump conversion so that clicking “Convert to Tasks” reliably extracts multiple distinct task items from a single spoken/freeform brain dump (often transcribed as one long paragraph) instead of returning one combined task.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-upgrade-the-local-deterministic-extractor-frontend-src-lib-braindumptaskextractor-ts-to-better-handle-speech-to-text-patterns-and-abstract-thoughts-phrasing-by-adding-robust-splitting-normalization-rules-that-work-for-long-run-on-sentences-e-g-i-need-to-also-and-then-while-still-avoiding-over-splitting-short-phrases",
+      "title": "Upgrade the local deterministic extractor (frontend/src/lib/brainDumpTaskExtractor.ts) to better handle speech-to-text patterns and “abstract thoughts” phrasing by adding robust splitting/normalization rules that work for long run-on sentences (e.g., “I need to… also… and… then…”) while still avoiding over-splitting short phrases.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-brain-dump-helper-copy-in-the-brain-dump-view-to-accurately-describe-the-behavior-as-local-smart-parsing-ai-like-that-runs-in-the-app-without-implying-any-external-ai-service-keep-all-user-facing-text-in-english",
+      "title": "Update Brain Dump helper copy in the Brain Dump view to accurately describe the behavior as local “smart parsing” (AI-like) that runs in the app, without implying any external AI service; keep all user-facing text in English.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-local-brain-dump-task-extractor-so-that-convert-to-tasks-reliably-returns-multiple-distinct-tasks-for-common-multi-task-inputs-especially-speech-to-text-paragraphs-instead-of-collapsing-the-entire-dump-into-one-combined-task",
+      "title": "Fix the local Brain Dump task extractor so that “Convert to Tasks” reliably returns multiple distinct tasks for common multi-task inputs (especially speech-to-text paragraphs), instead of collapsing the entire dump into one combined task.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-brain-dump-ui-s-convert-to-tasks-action-uses-the-updated-extractor-output-end-to-end-so-that-the-extracted-tasks-list-renders-one-ui-item-per-extracted-task-instead-of-a-single-item-containing-the-entire-dump",
+      "title": "Ensure the Brain Dump UI’s “Convert to Tasks” action uses the updated extractor output end-to-end, so that the Extracted Tasks list renders one UI item per extracted task (instead of a single item containing the entire dump).",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-that-clearing-deleting-the-brain-dump-clearing-the-brain-dump-draft-text-and-or-extracted-brain-dump-items-never-removes-or-alters-tasks-that-have-already-been-added-to-the-main-tasks-backlog-stored-under-the-existing-tasks-backlog-key",
+      "title": "Ensure that clearing/deleting the Brain Dump (clearing the Brain Dump draft text and/or extracted Brain Dump items) never removes or alters tasks that have already been added to the main tasks backlog (stored under the existing 'tasks-backlog' key).",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-adjust-brain-dump-view-helper-text-to-clearly-state-that-clearing-the-brain-dump-only-clears-the-brain-dump-draft-items-and-that-tasks-already-added-to-the-backlog-will-remain",
+      "title": "Add/adjust Brain Dump view helper text to clearly state that clearing the Brain Dump only clears the Brain Dump draft/items and that tasks already added to the backlog will remain.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -364,6 +431,12 @@
     {
       "id": "AR-18",
       "summary": "Brain Dump UI: remove/hide the Energy Assistant button; keep Brain Dump focused on converting brain-dump points into multiple distinct task items",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Ensure tasks created/added from Brain Dump persist in the main tasks list/backlog even after the Brain Dump draft/items are deleted/cleared",
       "reqIds": [],
       "status": "pending"
     }

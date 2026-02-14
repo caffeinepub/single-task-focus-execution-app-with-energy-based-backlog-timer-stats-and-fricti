@@ -1,28 +1,37 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T13:48:56.203Z",
+  "generatedAt": "2026-02-14T14:50:13.662Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-30",
-        "summary": "Ensure the “Add Task” button flow allows users to manually create a task and explicitly choose its category (energy type) from the four existing categories (DEEP, STEADY, LOW, NONE), and that the selected category is saved on the task and reflected in backlog filtering.",
+        "id": "REQ-37",
+        "summary": "Ensure that clearing/deleting the Brain Dump (clearing the Brain Dump draft text and/or extracted Brain Dump items) never removes or alters tasks that have already been added to the main tasks backlog (stored under the existing 'tasks-backlog' key).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/AddTaskModal.tsx",
-          "frontend/src/components/EnergyCategorySelector.tsx",
-          "frontend/src/FocusExecutionApp.jsx"
+          "frontend/src/FocusExecutionApp.jsx",
+          "frontend/src/components/BrainDumpView.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/AddTaskModal.tsx",
-          "frontend/src/components/EnergyCategorySelector.tsx",
-          "frontend/src/FocusExecutionApp.jsx"
+          "frontend/src/FocusExecutionApp.jsx",
+          "frontend/src/components/BrainDumpView.tsx"
+        ]
+      },
+      {
+        "id": "REQ-38",
+        "summary": "Add/adjust Brain Dump view helper text to clearly state that clearing the Brain Dump only clears the Brain Dump draft/items and that tasks already added to the backlog will remain.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/BrainDumpView.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/BrainDumpView.tsx"
         ]
       }
     ]
@@ -33,8 +42,7 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/FocusExecutionApp.jsx",
-    "frontend/src/components/AddTaskModal.tsx",
-    "frontend/src/components/EnergyCategorySelector.tsx",
+    "frontend/src/components/BrainDumpView.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

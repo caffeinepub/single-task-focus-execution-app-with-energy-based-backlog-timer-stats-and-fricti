@@ -1,38 +1,53 @@
 {
   "kind": "build_request",
-  "title": "Ensure Add Task supports manual entry with selectable energy categories",
+  "title": "Keep tasks created from Brain Dump after clearing/deleting the Brain Dump",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-30",
-      "text": "Ensure the “Add Task” button flow allows users to manually create a task and explicitly choose its category (energy type) from the four existing categories (DEEP, STEADY, LOW, NONE), and that the selected category is saved on the task and reflected in backlog filtering.",
+      "id": "REQ-37",
+      "text": "Ensure that clearing/deleting the Brain Dump (clearing the Brain Dump draft text and/or extracted Brain Dump items) never removes or alters tasks that have already been added to the main tasks backlog (stored under the existing 'tasks-backlog' key).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-user-1"
         ],
         "quotes": [
-          "For add task button, ensure that i can add tasks manually and put them in various categories"
+          "Now I want you to retain those tasks in the tasks list and not let them go once the brain dump is deleted. Tasks should remain."
         ]
       },
       "acceptanceCriteria": [
-        "From the Backlog view, the user can open the Add Task modal and manually enter a task title and other fields (without using Brain Dump).",
-        "The Add Task modal provides a clear category/energy selector with the four existing energy categories (DEEP, STEADY, LOW, NONE).",
-        "When the user selects a category and adds the task, the created task is persisted into the existing backlog storage and has its energy/category set to the selected value.",
-        "The newly added task appears in the backlog list with its category indicated, and it is included/excluded appropriately when backlog energy filter chips are toggled.",
-        "No user-facing text added or updated for this change uses non-English language."
+        "After using Brain Dump to extract items and clicking “Add All to Backlog” (or “Add Selected”), the newly created tasks appear in the Backlog view.",
+        "Clicking “Clear All” in the Brain Dump view (or otherwise clearing the Brain Dump draft/items) does not remove any tasks from the Backlog.",
+        "After clearing Brain Dump and reloading the page, tasks previously added from Brain Dump remain present in the Backlog (persisted via the existing 'tasks-backlog' storage key).",
+        "Clearing Brain Dump only affects the Brain Dump storage keys ('brain-dump-draft' and 'brain-dump-items') and does not write an empty value into 'tasks-backlog'."
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "text": "Add/adjust Brain Dump view helper text to clearly state that clearing the Brain Dump only clears the Brain Dump draft/items and that tasks already added to the backlog will remain.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "Tasks should remain."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Brain Dump UI displays clear English helper copy near the clear action indicating that clearing Brain Dump will not delete tasks already added to the backlog.",
+        "Copy changes do not imply any external AI service (keep the existing “local” framing)."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/components/ui (read-only UI component sources must be composed, not edited).",
-    "Do not modify any frontend immutable paths listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
-    "Keep the existing four-category energy model (DEEP, STEADY, LOW, NONE) unchanged."
+    "Do not edit files under frontend/src/components/ui (read-only).",
+    "Do not modify the Internet Identity / actor hooks in frontend/src/hooks/useInternetIdentity.ts(x) or frontend/src/hooks/useActor.ts (immutable paths).",
+    "Keep all user-facing text in English."
   ],
   "nonGoals": [
-    "Adding new categories beyond the existing four energy types.",
-    "Adding backend persistence or server-side storage for tasks (this change remains client-side/local persistence).",
-    "Introducing external AI/LLM calls for categorization."
+    "Do not change Brain Dump extraction logic or energy categorization logic (they are working fine per the user).",
+    "Do not introduce any backend persistence changes; backend/main.mo is currently a placeholder and this fix should remain frontend-only."
   ],
   "imageRequirements": {
     "required": [],

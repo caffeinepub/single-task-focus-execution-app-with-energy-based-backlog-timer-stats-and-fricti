@@ -1,34 +1,30 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T13:48:56.199Z",
-  "summary": "Diff adds a new AddTaskModal with manual fields and an EnergyCategorySelector supporting the four energy categories, and wires AddTaskModal into FocusExecutionApp. However, the provided diff summary is truncated and does not clearly show that the selected energy is persisted into backlog storage, displayed on the backlog list, or that backlog energy filter chips include/exclude the newly added task based on its chosen category.",
-  "missing_requirements": [
+  "generatedAt": "2026-02-14T14:50:13.659Z",
+  "summary": "REQ-37 and REQ-38 appear to be implemented: the diff indicates Brain Dump clearing is hardened to only affect Brain Dump storage keys and Brain Dump UI helper text was added/adjusted to clarify backlog tasks remain. The diff also includes additional Brain Dump-related UI/behavior changes not explicitly requested.",
+  "missing_requirements": [],
+  "hallucinated_features": [
     {
-      "id": "REQ-30",
-      "requirement": "When the user selects a category and adds the task, the created task is persisted into the existing backlog storage and has its energy/category set to the selected value.",
-      "reason": "AddTaskModal calls an onAdd callback with an `energy` value, but the diff excerpt does not show the FocusExecutionApp `onAdd` handler creating a task object, updating `backlog`, and writing it to `TASKS_BACKLOG` storage with the selected energy.",
+      "description": "Added/expanded Brain Dump speech-to-text functionality (listening state, transcript append, resetTranscript, mic icons) beyond the requested backlog persistence + helper text change.",
+      "reason": "BuildRequest only asks to ensure clearing Brain Dump does not affect backlog tasks and to add helper copy near clear action; speech-to-text is not requested.",
       "evidence": [
-        "frontend/src/components/AddTaskModal.tsx",
-        "frontend/src/FocusExecutionApp.jsx"
+        "frontend/src/components/BrainDumpView.tsx"
       ]
     },
     {
-      "id": "REQ-30",
-      "requirement": "The newly added task appears in the backlog list with its category indicated, and it is included/excluded appropriately when backlog energy filter chips are toggled.",
-      "reason": "The diff summary does not include the backlog list rendering changes (showing the task’s energy/category) nor the filtering logic that uses the newly set `energy` on the added task. FocusExecutionApp is truncated before showing backlog rendering/filter logic.",
+      "description": "Added/expanded Brain Dump item category override tracking and reclassification behavior when editing item text (categoryOverridden, suggested vs selectedCategory, error fallback logic).",
+      "reason": "Not requested by REQ-37/REQ-38; these relate to categorization/editing behavior rather than clearing behavior or helper text.",
       "evidence": [
-        "frontend/src/FocusExecutionApp.jsx"
+        "frontend/src/components/BrainDumpView.tsx"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.62,
+  "confidence": 0.66,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/FocusExecutionApp.jsx",
-    "frontend/src/components/AddTaskModal.tsx",
-    "frontend/src/components/EnergyCategorySelector.tsx",
+    "frontend/src/components/BrainDumpView.tsx",
     "project_state.json"
   ]
 }

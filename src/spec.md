@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Update the Backlog “Add Task” flow so users can manually create tasks and explicitly select one of the existing energy categories (DEEP, STEADY, LOW, NONE), with the selection saved and respected by backlog filtering.
+**Goal:** Ensure tasks added from Brain Dump to the main backlog persist even after clearing/deleting the Brain Dump, and clarify this behavior in the UI.
 
 **Planned changes:**
-- Ensure the Backlog “Add Task” modal supports manual task entry (without requiring Brain Dump).
-- Add a clear energy/category selector in the Add Task modal with the four existing categories (DEEP, STEADY, LOW, NONE).
-- Persist the selected energy/category on newly created tasks in the existing client-side backlog storage.
-- Display the new task in the backlog with its category indicated and ensure backlog energy filter chips include/exclude it appropriately.
-- Ensure any user-facing text involved in this change remains in English.
+- Update Brain Dump clear/delete behavior so it only clears Brain Dump storage keys (`brain-dump-draft`, `brain-dump-items`) and never removes/overwrites tasks stored in `tasks-backlog`.
+- Verify tasks added via “Add All to Backlog” / “Add Selected” remain in the Backlog after clearing Brain Dump and after a page reload.
+- Add/adjust helper text in the Brain Dump view to state that clearing Brain Dump does not delete tasks already added to the backlog (keep “local” framing and English-only copy).
 
-**User-visible outcome:** Users can open Add Task from the Backlog, manually enter a task, choose DEEP/STEADY/LOW/NONE, save it to the backlog, see its category in the list, and have it correctly respond to the backlog energy filter chips.
+**User-visible outcome:** Users can clear the Brain Dump without losing any tasks they already added to the Backlog, and the Brain Dump UI clearly communicates that tasks will remain.

@@ -2,12 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-the-add-task-button-flow-allows-users-to-manually-create-a-task-and-explicitly-choose-its-category-energy-type-from-the-four-existing-categories-deep-steady-low-none-and-that-the-selected-category-is-saved-on-the-task-and-reflected-in-backlog-filtering",
-      "featureTitle": "Ensure the “Add Task” button flow allows users to manually create a task and explicitly choose its category (energy type) from the four existing categories (DEEP, STEADY, LOW, NONE), and that the selected category is saved on the task and reflected in backlog filtering.",
+      "featureId": "feature-ensure-that-clearing-deleting-the-brain-dump-clearing-the-brain-dump-draft-text-and-or-extracted-brain-dump-items-never-removes-or-alters-tasks-that-have-already-been-added-to-the-main-tasks-backlog-stored-under-the-existing-tasks-backlog-key",
+      "featureTitle": "Ensure that clearing/deleting the Brain Dump (clearing the Brain Dump draft text and/or extracted Brain Dump items) never removes or alters tasks that have already been added to the main tasks backlog (stored under the existing 'tasks-backlog' key).",
       "files": [
         "frontend/src/FocusExecutionApp.jsx",
-        "frontend/src/components/AddTaskModal.tsx",
-        "frontend/src/components/EnergyCategorySelector.tsx"
+        "frontend/src/components/BrainDumpView.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -17,7 +16,25 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-30"
+        "REQ-37"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-adjust-brain-dump-view-helper-text-to-clearly-state-that-clearing-the-brain-dump-only-clears-the-brain-dump-draft-items-and-that-tasks-already-added-to-the-backlog-will-remain",
+      "featureTitle": "Add/adjust Brain Dump view helper text to clearly state that clearing the Brain Dump only clears the Brain Dump draft/items and that tasks already added to the backlog will remain.",
+      "files": [
+        "frontend/src/components/BrainDumpView.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-38"
       ],
       "confidence": "high"
     }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, ChevronDown, Check, Mic, MicOff, ListTodo } from 'lucide-react';
+import { Trash2, Plus, ChevronDown, Check, Mic, MicOff, ListTodo, X, Info } from 'lucide-react';
 import { classifyTaskEnergy, type EnergyCategory } from '../lib/taskEnergyClassifier';
 import { extractTasksFromBrainDump } from '../lib/brainDumpTaskExtractor';
 import { useSpeechToText } from '../hooks/useSpeechToText';
@@ -76,124 +76,121 @@ export default function BrainDumpView({
     }
   }, [transcript, resetTranscript]);
 
-  // Cleanup: stop listening on unmount
-  useEffect(() => {
-    return () => {
-      if (isListening) {
-        stopListening();
-      }
-    };
-  }, [isListening, stopListening]);
-
   const handleConvertToTasks = () => {
     if (!draftText.trim()) return;
 
-    // Use the improved task extractor to parse the brain dump
-    const extractedTasks = extractTasksFromBrainDump(draftText);
+    // Extract tasks using the enhanced local smart parser
+    const extractedTexts = extractTasksFromBrainDump(draftText);
 
-    // Create items with suggested categories
-    const newItems: BrainDumpItem[] = extractedTasks.map((text) => {
+    // Create BrainDumpItem for each extracted task with unique ID
+    const newItems = extractedTexts.map((text) => {
       const classification = classifyTaskEnergy(text);
-      const category =
-        'category' in classification ? classification.category : 'STEADY';
-
+      // Handle error case - default to STEADY if classification fails
+      const category = 'error' in classification ? 'STEADY' : classification.category;
+      
       return {
         id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         text,
         suggestedCategory: category,
         selectedCategory: category,
-        categoryOverridden: false, // Initially not overridden
+        categoryOverridden: false,
       };
     });
 
-    setItems([...items, ...newItems]);
+    setItems(newItems);
     setDraftText('');
   };
 
-  const handleRemoveItem = (id: string) => {
-    setItems(items.filter((item) => item.id !== id));
-    setSelectedItems((prev) => {
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
-  };
+  const handleUpdateItemText = (id: string, newText: string) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
 
-  const handleEditItem = (id: string, newText: string) => {
-    setItems(
-      items.map((item) => {
-        if (item.id === id) {
+        // If user hasn't manually overridden the category, update suggestion
+        if (!item.categoryOverridden) {
           const classification = classifyTaskEnergy(newText);
-          const category =
-            'category' in classification ? classification.category : 'STEADY';
+          const category = 'error' in classification ? 'STEADY' : classification.category;
           
-          // Update suggestion always, but only update selected if not manually overridden
           return {
             ...item,
             text: newText,
             suggestedCategory: category,
-            selectedCategory: item.categoryOverridden ? item.selectedCategory : category,
+            selectedCategory: category,
           };
         }
-        return item;
+
+        // User has overridden category, just update text and suggestion (but keep selected)
+        const classification = classifyTaskEnergy(newText);
+        const category = 'error' in classification ? item.suggestedCategory : classification.category;
+        
+        return {
+          ...item,
+          text: newText,
+          suggestedCategory: category,
+        };
       })
     );
   };
 
-  const handleChangeCategoryForItem = (id: string, category: EnergyCategory) => {
-    setItems(
-      items.map((item) => 
-        item.id === id 
-          ? { ...item, selectedCategory: category, categoryOverridden: true } 
+  const handleUpdateItemCategory = (id: string, category: EnergyCategory) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, selectedCategory: category, categoryOverridden: true }
           : item
       )
     );
-    setExpandedCategory(null);
   };
 
-  const handleToggleSelectItem = (id: string) => {
+  const handleDeleteItem = (id: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
     setSelectedItems((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
     });
   };
 
-  const handleAddSingleItem = (item: BrainDumpItem) => {
-    onAddToBacklog([item]);
-    handleRemoveItem(item.id);
+  const handleToggleSelect = (id: string) => {
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
   };
 
-  const handleAddSelected = () => {
-    const itemsToAdd = items.filter((item) => selectedItems.has(item.id));
-    if (itemsToAdd.length === 0) return;
+  const handleAddSelectedToBacklog = () => {
+    const selected = items.filter((item) => selectedItems.has(item.id));
+    if (selected.length === 0) return;
 
-    onAddToBacklog(itemsToAdd);
-    setItems(items.filter((item) => !selectedItems.has(item.id)));
+    onAddToBacklog(selected);
+    setItems((prev) => prev.filter((item) => !selectedItems.has(item.id)));
     setSelectedItems(new Set());
   };
 
-  const handleAddAll = () => {
+  const handleAddAllToBacklog = () => {
     if (items.length === 0) return;
     onAddToBacklog(items);
     setItems([]);
     setSelectedItems(new Set());
   };
 
-  const handleClearAll = () => {
+  const handleClear = () => {
+    // Only clear Brain Dump local state
     setDraftText('');
     setItems([]);
     setSelectedItems(new Set());
+    // Notify parent to clear Brain Dump persistence (not backlog)
     if (onClear) {
       onClear();
     }
   };
 
-  const handleToggleMicrophone = () => {
+  const handleToggleSpeech = () => {
     if (isListening) {
       stopListening();
     } else {
@@ -201,109 +198,86 @@ export default function BrainDumpView({
     }
   };
 
+  // Group items by category
+  const itemsByCategory = items.reduce((acc, item) => {
+    const cat = item.selectedCategory;
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(item);
+    return acc;
+  }, {} as Record<string, BrainDumpItem[]>);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F7F3E9] via-[#FDF8ED] to-[#F7F3E9]">
       {/* Header */}
       <header className="border-b border-[#8B7355]/10 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-['Crimson_Pro'] text-[#3E3833]">Brain Dump</h1>
+          <div className="flex items-center gap-2">
+            {onFocusHome && <FocusHomeButton onActivate={onFocusHome} />}
             <button
               onClick={onClose}
               className="p-2 hover:bg-[#E07A5F]/10 rounded-lg transition-all"
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12.5 5L7.5 10L12.5 15"
-                  stroke="#E07A5F"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <X size={20} style={{ color: '#E07A5F' }} />
             </button>
-            <h1 className="text-3xl font-['Crimson_Pro'] text-[#3E3833]">Brain Dump</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            {onFocusHome && <FocusHomeButton onActivate={onFocusHome} />}
-            {items.length > 0 && (
-              <button
-                onClick={handleClearAll}
-                className="px-4 py-2 text-sm font-['Work_Sans'] text-[#8B7355] hover:text-[#E07A5F] transition-colors"
-              >
-                Clear All
-              </button>
-            )}
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Draft Input Section */}
-        <div className="bg-white rounded-2xl p-6 shadow-warm mb-8 animate-slide-up">
-          <div className="flex items-center gap-2 mb-4">
-            <ListTodo size={20} style={{ color: '#E07A5F' }} />
+        <div className="bg-white rounded-2xl p-6 shadow-warm">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-['Crimson_Pro'] text-[#3E3833]">
-              Capture your thoughts
+              Dump your thoughts
             </h2>
-          </div>
-          <p className="text-sm text-[#8B7355] mb-4 font-['Work_Sans']">
-            Write down everything on your mind. We'll automatically split your brain dump into individual tasks, each with a suggested energy category.
-          </p>
-          
-          {/* Microphone Button and Status */}
-          <div className="flex items-center gap-3 mb-3">
-            {isSupported ? (
-              <>
+            <div className="flex items-center gap-2">
+              {isSupported && (
                 <button
-                  onClick={handleToggleMicrophone}
-                  disabled={!isSupported}
-                  className={`p-3 rounded-xl transition-all shadow-warm hover:shadow-warm-lg ${
+                  onClick={handleToggleSpeech}
+                  className={`p-2 rounded-lg transition-all ${
                     isListening
                       ? 'bg-[#E07A5F] text-white animate-pulse'
-                      : 'bg-[#F2A65A] text-white hover:scale-105'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      : 'hover:bg-[#E07A5F]/10 text-[#E07A5F]'
+                  }`}
                   title={isListening ? 'Stop recording' : 'Start voice input'}
                 >
                   {isListening ? <MicOff size={20} /> : <Mic size={20} />}
                 </button>
-                {isListening && (
-                  <span className="text-sm font-['Work_Sans'] text-[#E07A5F] animate-pulse">
-                    Listening...
-                  </span>
-                )}
-              </>
-            ) : (
-              <div className="text-sm text-[#8B7355] font-['Work_Sans'] bg-[#8B7355]/5 px-3 py-2 rounded-lg">
-                Voice input is not supported in this browser. Please try Chrome, Edge, or Safari.
-              </div>
-            )}
-          </div>
-
-          {/* Speech Error Display */}
-          {speechError && (
-            <div className="mb-3 text-sm text-red-600 font-['Work_Sans'] bg-red-50 px-3 py-2 rounded-lg">
-              {speechError}
+              )}
+              {draftText && (
+                <button
+                  onClick={() => setDraftText('')}
+                  className="text-sm text-[#8B7355] hover:text-[#E07A5F] transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
-          )}
+          </div>
 
           <textarea
             value={draftText}
             onChange={(e) => setDraftText(e.target.value)}
-            placeholder="Type or paste your thoughts here...&#10;• Buy groceries and then pick up dry cleaning&#10;1. Review the design doc&#10;2. Schedule team meeting&#10;Fix bug in login; update documentation&#10;&#10;Or click the microphone to speak!"
-            className="w-full h-48 px-4 py-3 border border-[#8B7355]/20 rounded-xl font-['Work_Sans'] text-[#3E3833] placeholder:text-[#8B7355]/50 focus:outline-none focus:ring-2 focus:ring-[#E07A5F]/30 resize-none"
+            placeholder="Type or speak your tasks... (e.g., 'Email Alex and schedule dentist, then pay rent')"
+            className="w-full h-40 p-4 border border-[#8B7355]/20 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-[#E07A5F]/30 font-['Work_Sans'] text-[#3E3833]"
           />
-          <div className="flex justify-end mt-4">
+
+          {speechError && (
+            <p className="mt-2 text-sm text-red-500">
+              Speech recognition error: {speechError}
+            </p>
+          )}
+
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-[#8B7355] font-['Work_Sans']">
+              Our local smart parser will split your dump into individual tasks
+            </p>
             <button
               onClick={handleConvertToTasks}
               disabled={!draftText.trim()}
-              className="px-6 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] shadow-warm hover:shadow-warm-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
+              className="px-6 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
             >
               <ListTodo size={18} />
               Convert to Tasks
@@ -311,147 +285,141 @@ export default function BrainDumpView({
           </div>
         </div>
 
-        {/* Items List */}
+        {/* Extracted Tasks Section */}
         {items.length > 0 && (
-          <div className="space-y-6 animate-slide-up">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">
-                Your Items ({items.length})
+          <div className="bg-white rounded-2xl p-6 shadow-warm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-['Crimson_Pro'] text-[#3E3833]">
+                Extracted Tasks ({items.length})
               </h2>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={handleClear}
+                  className="text-sm text-[#8B7355] hover:text-[#E07A5F] transition-colors"
+                  title="Clear Brain Dump only - tasks already added to Backlog will remain"
+                >
+                  Clear All
+                </button>
                 {selectedItems.size > 0 && (
                   <button
-                    onClick={handleAddSelected}
-                    className="px-4 py-2 bg-[#F2A65A] text-white rounded-lg font-['Work_Sans'] text-sm shadow-warm hover:shadow-warm-lg transition-all hover:scale-105 flex items-center gap-2"
+                    onClick={handleAddSelectedToBacklog}
+                    className="px-4 py-2 bg-[#F2A65A] text-white rounded-lg font-['Work_Sans'] hover:scale-105 transition-all text-sm"
                   >
-                    <Plus size={16} />
                     Add Selected ({selectedItems.size})
                   </button>
                 )}
                 <button
-                  onClick={handleAddAll}
-                  className="px-4 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] text-sm shadow-warm hover:shadow-warm-lg transition-all hover:scale-105 flex items-center gap-2"
+                  onClick={handleAddAllToBacklog}
+                  className="px-4 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] hover:scale-105 transition-all text-sm"
                 >
-                  <Plus size={16} />
                   Add All to Backlog
                 </button>
               </div>
             </div>
 
-            <div className="space-y-3">
-              {items.map((item, index) => {
-                const energyLevel = energyLevels[item.selectedCategory];
-                const isSelected = selectedItems.has(item.id);
-                const isCategoryExpanded = expandedCategory === item.id;
-                const showSuggestionDiff = item.categoryOverridden && 
-                  item.suggestedCategory !== item.selectedCategory;
+            {/* Helper text */}
+            <div className="mb-6 flex items-start gap-2 p-3 bg-[#E07A5F]/5 rounded-lg border border-[#E07A5F]/20">
+              <Info size={18} className="text-[#E07A5F] flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-[#8B7355] font-['Work_Sans']">
+                Clearing Brain Dump only removes items here. Tasks already added to your Backlog will remain safe.
+              </p>
+            </div>
+
+            {/* Group by category */}
+            <div className="space-y-4">
+              {Object.entries(energyLevels).map(([key, level]) => {
+                const categoryItems = itemsByCategory[key] || [];
+                if (categoryItems.length === 0) return null;
+
+                const isExpanded = expandedCategory === key;
 
                 return (
-                  <div
-                    key={item.id}
-                    className="bg-white rounded-xl p-4 shadow-warm hover:shadow-warm-lg transition-all animate-stagger"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* Checkbox */}
-                      <button
-                        onClick={() => handleToggleSelectItem(item.id)}
-                        className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-                          isSelected
-                            ? 'bg-[#E07A5F] border-[#E07A5F]'
-                            : 'border-[#8B7355]/30 hover:border-[#E07A5F]'
-                        }`}
-                      >
-                        {isSelected && <Check size={14} className="text-white" />}
-                      </button>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <input
-                          type="text"
-                          value={item.text}
-                          onChange={(e) => handleEditItem(item.id, e.target.value)}
-                          className="w-full px-2 py-1 font-['Work_Sans'] text-[#3E3833] bg-transparent border-b border-transparent hover:border-[#8B7355]/20 focus:border-[#E07A5F] focus:outline-none transition-colors"
+                  <div key={key} className="border border-[#8B7355]/10 rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setExpandedCategory(isExpanded ? null : key)}
+                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F7F3E9] transition-colors"
+                      style={{ backgroundColor: isExpanded ? `${level.color}10` : 'transparent' }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: level.color }}
                         />
+                        <span className="font-['Work_Sans'] text-[#3E3833]">
+                          {level.label} ({categoryItems.length})
+                        </span>
+                      </div>
+                      <ChevronDown
+                        size={20}
+                        className={`text-[#8B7355] transition-transform ${
+                          isExpanded ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
 
-                        {/* Category Selector */}
-                        <div className="mt-2 relative">
-                          <button
-                            onClick={() =>
-                              setExpandedCategory(isCategoryExpanded ? null : item.id)
-                            }
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-[#8B7355]/5 transition-all"
-                            style={{ backgroundColor: `${energyLevel.color}15` }}
+                    {isExpanded && (
+                      <div className="p-4 space-y-3 bg-white">
+                        {categoryItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-start gap-3 p-3 border border-[#8B7355]/10 rounded-lg hover:border-[#E07A5F]/30 transition-colors"
                           >
-                            <span
-                              className="text-xs font-['Work_Sans'] font-medium"
-                              style={{ color: energyLevel.color }}
-                            >
-                              {energyLevel.label}
-                            </span>
-                            <ChevronDown
-                              size={14}
-                              style={{ color: energyLevel.color }}
-                              className={`transition-transform ${
-                                isCategoryExpanded ? 'rotate-180' : ''
+                            <button
+                              onClick={() => handleToggleSelect(item.id)}
+                              className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                                selectedItems.has(item.id)
+                                  ? 'bg-[#E07A5F] border-[#E07A5F]'
+                                  : 'border-[#8B7355]/30 hover:border-[#E07A5F]'
                               }`}
-                            />
-                          </button>
+                            >
+                              {selectedItems.has(item.id) && (
+                                <Check size={14} className="text-white" />
+                              )}
+                            </button>
 
-                          {/* Show suggestion hint if overridden */}
-                          {showSuggestionDiff && (
-                            <div className="mt-1 text-xs text-[#8B7355] font-['Work_Sans'] flex items-center gap-1">
-                              <ListTodo size={12} />
-                              <span>
-                                Suggested: {energyLevels[item.suggestedCategory].label}
-                              </span>
+                            <div className="flex-1">
+                              <input
+                                type="text"
+                                value={item.text}
+                                onChange={(e) => handleUpdateItemText(item.id, e.target.value)}
+                                className="w-full px-2 py-1 border-b border-transparent hover:border-[#8B7355]/20 focus:border-[#E07A5F] focus:outline-none font-['Work_Sans'] text-[#3E3833]"
+                              />
+
+                              <div className="mt-2 flex items-center gap-2">
+                                {Object.entries(energyLevels).map(([catKey, catLevel]) => (
+                                  <button
+                                    key={catKey}
+                                    onClick={() =>
+                                      handleUpdateItemCategory(item.id, catKey as EnergyCategory)
+                                    }
+                                    className={`px-3 py-1 rounded-full text-xs font-['Work_Sans'] transition-all ${
+                                      item.selectedCategory === catKey
+                                        ? 'text-white'
+                                        : 'text-[#8B7355] hover:opacity-80'
+                                    }`}
+                                    style={{
+                                      backgroundColor:
+                                        item.selectedCategory === catKey
+                                          ? catLevel.color
+                                          : `${catLevel.color}20`,
+                                    }}
+                                  >
+                                    {catLevel.label}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
-                          )}
 
-                          {/* Category Dropdown */}
-                          {isCategoryExpanded && (
-                            <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-warm-lg border border-[#8B7355]/10 py-1 z-10 min-w-[160px]">
-                              {Object.values(energyLevels).map((level) => (
-                                <button
-                                  key={level.key}
-                                  onClick={() =>
-                                    handleChangeCategoryForItem(
-                                      item.id,
-                                      level.key as EnergyCategory
-                                    )
-                                  }
-                                  className="w-full px-4 py-2 text-left text-sm font-['Work_Sans'] hover:bg-[#8B7355]/5 transition-colors flex items-center gap-2"
-                                >
-                                  <span
-                                    className="w-2 h-2 rounded-full"
-                                    style={{ backgroundColor: level.color }}
-                                  />
-                                  {level.label}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                            <button
+                              onClick={() => handleDeleteItem(item.id)}
+                              className="p-1 hover:bg-red-50 rounded transition-colors"
+                            >
+                              <Trash2 size={16} className="text-red-500" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleAddSingleItem(item)}
-                          className="p-2 text-[#F2A65A] hover:bg-[#F2A65A]/10 rounded-lg transition-all"
-                          title="Add to backlog"
-                        >
-                          <Plus size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="p-2 text-[#8B7355] hover:bg-[#8B7355]/10 rounded-lg transition-all"
-                          title="Remove"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
