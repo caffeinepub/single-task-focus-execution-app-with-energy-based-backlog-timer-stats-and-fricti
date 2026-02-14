@@ -1,17 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, ChevronDown, Check, Mic, MicOff, ListTodo, X, Info } from 'lucide-react';
+import { Trash2, Plus, ChevronDown, Check, Mic, MicOff, ListTodo, X, Info, Table as TableIcon } from 'lucide-react';
 import { classifyTaskEnergy, type EnergyCategory } from '../lib/taskEnergyClassifier';
 import { extractTasksFromBrainDump } from '../lib/brainDumpTaskExtractor';
 import { useSpeechToText } from '../hooks/useSpeechToText';
 import FocusHomeButton from './FocusHomeButton';
-
-interface BrainDumpItem {
-  id: string;
-  text: string;
-  suggestedCategory: EnergyCategory;
-  selectedCategory: EnergyCategory;
-  categoryOverridden: boolean; // Track if user manually changed category
-}
+import BrainDumpItemsTable from './BrainDumpItemsTable';
+import type { BrainDumpItem } from '../lib/taskModels';
 
 interface BrainDumpViewProps {
   energyLevels: Record<string, { key: string; label: string; color: string }>;
@@ -40,6 +34,7 @@ export default function BrainDumpView({
   const [items, setItems] = useState<BrainDumpItem[]>(initialItems);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [showTableView, setShowTableView] = useState(false);
 
   const {
     isListening,
@@ -82,7 +77,7 @@ export default function BrainDumpView({
     // Extract tasks using the enhanced local smart parser
     const extractedTexts = extractTasksFromBrainDump(draftText);
 
-    // Create BrainDumpItem for each extracted task with unique ID
+    // Create BrainDumpItem for each extracted task with unique ID and timestamp
     const newItems = extractedTexts.map((text) => {
       const classification = classifyTaskEnergy(text);
       // Handle error case - default to STEADY if classification fails
@@ -94,6 +89,8 @@ export default function BrainDumpView({
         suggestedCategory: category,
         selectedCategory: category,
         categoryOverridden: false,
+        createdAt: Date.now(),
+        plannedTimeline: '',
       };
     });
 
@@ -138,6 +135,14 @@ export default function BrainDumpView({
         item.id === id
           ? { ...item, selectedCategory: category, categoryOverridden: true }
           : item
+      )
+    );
+  };
+
+  const handleUpdatePlannedTimeline = (id: string, timeline: string) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, plannedTimeline: timeline } : item
       )
     );
   };
@@ -294,6 +299,17 @@ export default function BrainDumpView({
               </h2>
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => setShowTableView(!showTableView)}
+                  className={`p-2 rounded-lg transition-all ${
+                    showTableView
+                      ? 'bg-[#E07A5F] text-white'
+                      : 'hover:bg-[#E07A5F]/10 text-[#E07A5F]'
+                  }`}
+                  title={showTableView ? 'Show card view' : 'Show table view'}
+                >
+                  <TableIcon size={18} />
+                </button>
+                <button
                   onClick={handleClear}
                   className="text-sm text-[#8B7355] hover:text-[#E07A5F] transition-colors"
                   title="Clear Brain Dump only - tasks already added to Backlog will remain"
@@ -325,105 +341,114 @@ export default function BrainDumpView({
               </p>
             </div>
 
-            {/* Group by category */}
-            <div className="space-y-4">
-              {Object.entries(energyLevels).map(([key, level]) => {
-                const categoryItems = itemsByCategory[key] || [];
-                if (categoryItems.length === 0) return null;
+            {/* Table or Card View */}
+            {showTableView ? (
+              <BrainDumpItemsTable
+                items={items}
+                energyLevels={energyLevels}
+                onUpdatePlannedTimeline={handleUpdatePlannedTimeline}
+              />
+            ) : (
+              // Group by category (existing card view)
+              <div className="space-y-4">
+                {Object.entries(energyLevels).map(([key, level]) => {
+                  const categoryItems = itemsByCategory[key] || [];
+                  if (categoryItems.length === 0) return null;
 
-                const isExpanded = expandedCategory === key;
+                  const isExpanded = expandedCategory === key;
 
-                return (
-                  <div key={key} className="border border-[#8B7355]/10 rounded-xl overflow-hidden">
-                    <button
-                      onClick={() => setExpandedCategory(isExpanded ? null : key)}
-                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F7F3E9] transition-colors"
-                      style={{ backgroundColor: isExpanded ? `${level.color}10` : 'transparent' }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: level.color }}
-                        />
-                        <span className="font-['Work_Sans'] text-[#3E3833]">
-                          {level.label} ({categoryItems.length})
-                        </span>
-                      </div>
-                      <ChevronDown
-                        size={20}
-                        className={`text-[#8B7355] transition-transform ${
-                          isExpanded ? 'rotate-180' : ''
-                        }`}
-                      />
-                    </button>
-
-                    {isExpanded && (
-                      <div className="p-4 space-y-3 bg-white">
-                        {categoryItems.map((item) => (
+                  return (
+                    <div key={key} className="border border-[#8B7355]/10 rounded-xl overflow-hidden">
+                      <button
+                        onClick={() => setExpandedCategory(isExpanded ? null : key)}
+                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F7F3E9] transition-colors"
+                        style={{ backgroundColor: isExpanded ? `${level.color}10` : 'transparent' }}
+                      >
+                        <div className="flex items-center gap-3">
                           <div
-                            key={item.id}
-                            className="flex items-start gap-3 p-3 border border-[#8B7355]/10 rounded-lg hover:border-[#E07A5F]/30 transition-colors"
-                          >
-                            <button
-                              onClick={() => handleToggleSelect(item.id)}
-                              className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-                                selectedItems.has(item.id)
-                                  ? 'bg-[#E07A5F] border-[#E07A5F]'
-                                  : 'border-[#8B7355]/30 hover:border-[#E07A5F]'
-                              }`}
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: level.color }}
+                          />
+                          <span className="font-['Work_Sans'] text-[#3E3833]">
+                            {level.label} ({categoryItems.length})
+                          </span>
+                        </div>
+                        <ChevronDown
+                          size={20}
+                          className={`text-[#8B7355] transition-transform ${
+                            isExpanded ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+
+                      {isExpanded && (
+                        <div className="p-4 space-y-3 bg-white">
+                          {categoryItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-start gap-3 p-3 border border-[#8B7355]/10 rounded-lg hover:border-[#E07A5F]/30 transition-colors"
                             >
-                              {selectedItems.has(item.id) && (
-                                <Check size={14} className="text-white" />
-                              )}
-                            </button>
+                              <button
+                                onClick={() => handleToggleSelect(item.id)}
+                                className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                                  selectedItems.has(item.id)
+                                    ? 'bg-[#E07A5F] border-[#E07A5F]'
+                                    : 'border-[#8B7355]/30 hover:border-[#E07A5F]'
+                                }`}
+                              >
+                                {selectedItems.has(item.id) && (
+                                  <Check size={14} className="text-white" />
+                                )}
+                              </button>
 
-                            <div className="flex-1">
-                              <input
-                                type="text"
-                                value={item.text}
-                                onChange={(e) => handleUpdateItemText(item.id, e.target.value)}
-                                className="w-full px-2 py-1 border-b border-transparent hover:border-[#8B7355]/20 focus:border-[#E07A5F] focus:outline-none font-['Work_Sans'] text-[#3E3833]"
-                              />
+                              <div className="flex-1">
+                                <input
+                                  type="text"
+                                  value={item.text}
+                                  onChange={(e) => handleUpdateItemText(item.id, e.target.value)}
+                                  className="w-full px-2 py-1 border-b border-transparent hover:border-[#8B7355]/20 focus:border-[#E07A5F] focus:outline-none font-['Work_Sans'] text-[#3E3833]"
+                                />
 
-                              <div className="mt-2 flex items-center gap-2">
-                                {Object.entries(energyLevels).map(([catKey, catLevel]) => (
-                                  <button
-                                    key={catKey}
-                                    onClick={() =>
-                                      handleUpdateItemCategory(item.id, catKey as EnergyCategory)
-                                    }
-                                    className={`px-3 py-1 rounded-full text-xs font-['Work_Sans'] transition-all ${
-                                      item.selectedCategory === catKey
-                                        ? 'text-white'
-                                        : 'text-[#8B7355] hover:opacity-80'
-                                    }`}
-                                    style={{
-                                      backgroundColor:
+                                <div className="mt-2 flex items-center gap-2">
+                                  {Object.entries(energyLevels).map(([catKey, catLevel]) => (
+                                    <button
+                                      key={catKey}
+                                      onClick={() =>
+                                        handleUpdateItemCategory(item.id, catKey as EnergyCategory)
+                                      }
+                                      className={`px-3 py-1 rounded-full text-xs font-['Work_Sans'] transition-all ${
                                         item.selectedCategory === catKey
-                                          ? catLevel.color
-                                          : `${catLevel.color}20`,
-                                    }}
-                                  >
-                                    {catLevel.label}
-                                  </button>
-                                ))}
+                                          ? 'text-white'
+                                          : 'text-[#8B7355] hover:opacity-80'
+                                      }`}
+                                      style={{
+                                        backgroundColor:
+                                          item.selectedCategory === catKey
+                                            ? catLevel.color
+                                            : `${catLevel.color}20`,
+                                      }}
+                                    >
+                                      {catLevel.label}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
 
-                            <button
-                              onClick={() => handleDeleteItem(item.id)}
-                              className="p-1 hover:bg-red-50 rounded transition-colors"
-                            >
-                              <Trash2 size={16} className="text-red-500" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                              <button
+                                onClick={() => handleDeleteItem(item.id)}
+                                className="p-1 hover:bg-red-50 rounded transition-colors"
+                              >
+                                <Trash2 size={16} className="text-red-500" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </main>

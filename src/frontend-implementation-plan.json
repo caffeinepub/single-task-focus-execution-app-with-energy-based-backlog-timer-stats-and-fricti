@@ -1,42 +1,109 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Preserve Backlog tasks when clearing Brain Dump",
+  "title": "Task timestamp metadata + table views for Backlog and Brain Dump",
   "requirements": [
     {
-      "id": "REQ-37",
-      "summary": "Ensure clearing/deleting Brain Dump only affects Brain Dump storage keys and never alters tasks already persisted in the main backlog under 'tasks-backlog'.",
+      "id": "REQ-41",
+      "summary": "Extend client-side Backlog and Brain Dump models with created-at, planned timeline, and completed-at metadata while safely loading older localStorage data missing these fields.",
       "acceptanceCriteria": [
-        "After using Brain Dump to extract items and clicking “Add All to Backlog” (or “Add Selected”), the newly created tasks appear in the Backlog view.",
-        "Clicking “Clear All” in the Brain Dump view (or otherwise clearing the Brain Dump draft/items) does not remove any tasks from the Backlog.",
-        "After clearing Brain Dump and reloading the page, tasks previously added from Brain Dump remain present in the Backlog (persisted via the existing 'tasks-backlog' storage key).",
-        "Clearing Brain Dump only affects the Brain Dump storage keys ('brain-dump-draft' and 'brain-dump-items') and does not write an empty value into 'tasks-backlog'."
+        "Previously saved backlog tasks and brain dump items still load without errors after the change (missing new fields are handled gracefully).",
+        "New Backlog tasks created via Add Task and via Brain Dump conversion have creation date/time stored automatically.",
+        "Brain Dump items generated from draft text have creation date/time stored automatically.",
+        "A planned timeline field exists in the data model for both Backlog tasks and Brain Dump items (it may be empty if not set).",
+        "A completion timestamp field exists in the Backlog task model and is empty/null for incomplete tasks."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/lib/taskModels.ts",
+          "operation": "create",
+          "description": "Create shared client-side types and normalization helpers for Backlog tasks and Brain Dump items (e.g., ensure createdAt/plannedTimeline/completedAt exist with safe defaults when missing)."
+        },
+        {
           "path": "frontend/src/FocusExecutionApp.jsx",
           "operation": "modify",
-          "description": "Harden Brain Dump clearing so it only removes/clears the Brain Dump persisted keys ('brain-dump-draft' and 'brain-dump-items') and never touches the backlog persistence ('tasks-backlog'); update the clear handler and related persistence behavior to avoid any writes that could overwrite the backlog."
+          "description": "Use the new normalization helpers when loading backlog/current task/brain dump items from localStorage so older persisted records missing timestamp fields are upgraded in-memory without errors."
         },
         {
           "path": "frontend/src/components/BrainDumpView.tsx",
           "operation": "modify",
-          "description": "Ensure the Brain Dump UI clear actions only reset Brain Dump-local state and invoke the provided onClear callback (no side effects on backlog); verify that Add Selected/Add All flows only append tasks via onAddToBacklog and that subsequent clearing cannot cascade into backlog updates."
+          "description": "Update BrainDumpItem typing to include createdAt/plannedTimeline/completedAt (placeholder) and ensure initialItems passed from persistence are handled safely when fields are missing."
         }
       ]
     },
     {
-      "id": "REQ-38",
-      "summary": "Add Brain Dump helper text clarifying that clearing Brain Dump does not delete tasks already added to the backlog, keeping the existing local-only framing.",
+      "id": "REQ-42",
+      "summary": "Capture created-at and planned timeline during task creation and Brain Dump conversions, and record completion time when the current task is completed.",
       "acceptanceCriteria": [
-        "Brain Dump UI displays clear English helper copy near the clear action indicating that clearing Brain Dump will not delete tasks already added to the backlog.",
-        "Copy changes do not imply any external AI service (keep the existing “local” framing)."
+        "When a user adds a task via the Add Task modal, the task includes a created-at timestamp and any planned timeline inputs (if provided).",
+        "When a user converts Brain Dump text into items, each extracted Brain Dump item includes a created-at timestamp.",
+        "When a user adds Brain Dump items to the Backlog, each created Backlog task includes a created-at timestamp (and carries over any planned timeline fields if they exist on the item).",
+        "When a user completes the current task, the app records a completion timestamp for that task at completion time (even if the task is not kept in the backlog UI)."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/components/AddTaskModal.tsx",
+          "operation": "modify",
+          "description": "Add a planned timeline input to the Add Task modal and include it in the onAdd payload so FocusExecutionApp can persist it alongside createdAt. Verify the component's usage instructions before implementing."
+        },
+        {
           "path": "frontend/src/components/BrainDumpView.tsx",
           "operation": "modify",
-          "description": "Add/adjust English helper copy near the “Clear All” (and/or draft clear) controls stating that clearing only removes the Brain Dump draft/extracted items and that tasks already added to Backlog remain; keep wording consistent with the current local/offline framing."
+          "description": "When converting draft text into Brain Dump items, set createdAt automatically and initialize plannedTimeline to an empty value; support editing plannedTimeline per item so it can carry into the Backlog. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/FocusExecutionApp.jsx",
+          "operation": "modify",
+          "description": "On Add Task, Brain Dump -> Add to Backlog, and task completion actions: set createdAt/plannedTimeline on created tasks, carry plannedTimeline from Brain Dump items, and record completedAt at completion time (including in the streak-completed record even though the task leaves the backlog UI)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "summary": "Render the Backlog section as a warm-themed table including creation date, creation time, planned timeline, and completed time with placeholders for incomplete tasks.",
+      "acceptanceCriteria": [
+        "Backlog view includes a table presentation for backlog tasks.",
+        "Each row shows: Creation date, Creation time, Planned timeline, Completed time.",
+        "For tasks that are not completed, Completed time displays a consistent placeholder (e.g., \"—\").",
+        "Table styling matches the existing warm theme and remains readable on mobile (horizontal scroll or responsive stacking is acceptable)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/dateTimeFormat.ts",
+          "operation": "create",
+          "description": "Add small date/time formatting utilities for timestamps (e.g., to consistently render Creation date, Creation time, and Completed time, and to provide a placeholder when missing)."
+        },
+        {
+          "path": "frontend/src/components/BacklogTasksTable.tsx",
+          "operation": "create",
+          "description": "Create a Backlog table component that displays one row per backlog task with columns: Creation date, Creation time, Planned timeline, Completed time (placeholder when null), and keeps the warm theme styling with mobile-friendly overflow. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/FocusExecutionApp.jsx",
+          "operation": "modify",
+          "description": "Wire the new BacklogTasksTable into the existing Backlog view so it replaces or accompanies the current list UI; ensure navigation to/from Backlog remains intact and table remains readable on mobile."
+        }
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "summary": "Render extracted Brain Dump items as a warm-themed table including creation date, creation time, planned timeline, and a completed time placeholder.",
+      "acceptanceCriteria": [
+        "Brain Dump view includes a table presentation for extracted items (in addition to, or replacing, the current card/list layout) that lists one row per extracted item.",
+        "Each row shows: Creation date, Creation time, Planned timeline, Completed time.",
+        "For Brain Dump items that have no completion concept, Completed time displays a consistent placeholder (e.g., \"—\").",
+        "Table styling matches the existing warm theme and remains readable on mobile (horizontal scroll or responsive stacking is acceptable)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/BrainDumpItemsTable.tsx",
+          "operation": "create",
+          "description": "Create a Brain Dump items table component showing columns: Creation date, Creation time, Planned timeline (editable), and Completed time (placeholder), matching the warm theme and supporting mobile overflow. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/BrainDumpView.tsx",
+          "operation": "modify",
+          "description": "Wire the BrainDumpItemsTable into the Brain Dump view to provide a table presentation for extracted items (alongside or replacing the existing grouped layout), using consistent date/time formatting and placeholders."
         }
       ]
     }

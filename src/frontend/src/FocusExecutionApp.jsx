@@ -18,11 +18,21 @@ import {
   AlertCircle,
   Sparkles,
   Lightbulb,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import TaskEnergyAssistant from './components/TaskEnergyAssistant';
 import BrainDumpView from './components/BrainDumpView';
 import FocusHomeButton from './components/FocusHomeButton';
 import AddTaskModal from './components/AddTaskModal';
+import StreakDetailsPanel from './components/StreakDetailsPanel';
+import BacklogTasksTable from './components/BacklogTasksTable';
+import {
+  loadStreakCompletedTasks,
+  saveStreakCompletedTasks,
+  clearStreakCompletedTasks,
+} from './lib/streakCompletedTasksStorage';
+import { normalizeBacklogTask, normalizeBrainDumpItem } from './lib/taskModels';
 
 // Storage helpers
 const STORAGE_KEYS = {
@@ -105,6 +115,7 @@ export default function FocusExecutionApp() {
   const [currentTask, setCurrentTask] = useState(null);
   const [backlog, setBacklog] = useState([]);
   const [stats, setStats] = useState({ completed: 0, streak: 0, totalTime: 0 });
+  const [streakCompletedTasks, setStreakCompletedTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // UI state
@@ -115,6 +126,7 @@ export default function FocusExecutionApp() {
   const [showAssistant, setShowAssistant] = useState(false);
   const [showAssistantInModal, setShowAssistantInModal] = useState(false);
   const [energyFilter, setEnergyFilter] = useState('ALL');
+  const [isStreakPanelOpen, setIsStreakPanelOpen] = useState(false);
 
   // Brain Dump state
   const [brainDumpDraft, setBrainDumpDraft] = useState('');
@@ -141,15 +153,26 @@ export default function FocusExecutionApp() {
         getStorageItem(STORAGE_KEYS.BRAIN_DUMP_ITEMS),
       ]);
 
+      // Load streak completed tasks
+      const streakTasks = loadStreakCompletedTasks();
+
       if (energy) setCurrentEnergy(energy);
       if (task) {
-        setCurrentTask(task);
-        setNoteText(task.note || '');
+        const normalizedTask = normalizeBacklogTask(task);
+        setCurrentTask(normalizedTask);
+        setNoteText(normalizedTask.note || '');
       }
-      if (tasks) setBacklog(tasks);
+      if (tasks) {
+        const normalizedTasks = tasks.map(normalizeBacklogTask);
+        setBacklog(normalizedTasks);
+      }
       if (userStats) setStats(userStats);
       if (dumpDraft) setBrainDumpDraft(dumpDraft);
-      if (dumpItems) setBrainDumpItems(dumpItems);
+      if (dumpItems) {
+        const normalizedItems = dumpItems.map(normalizeBrainDumpItem);
+        setBrainDumpItems(normalizedItems);
+      }
+      setStreakCompletedTasks(streakTasks);
 
       setIsLoading(false);
     }
@@ -216,6 +239,13 @@ export default function FocusExecutionApp() {
     }
   }, [brainDumpItems, isLoading]);
 
+  // Persist streak completed tasks when they change
+  useEffect(() => {
+    if (!isLoading) {
+      saveStreakCompletedTasks(streakCompletedTasks);
+    }
+  }, [streakCompletedTasks, isLoading]);
+
   const handleEnergySelect = (energyKey) => {
     setCurrentEnergy(energyKey);
   };
@@ -243,11 +273,22 @@ export default function FocusExecutionApp() {
     if (!currentTask) return;
 
     const timeInMinutes = Math.round(timerSeconds / 60);
+    const completionTimestamp = Date.now();
+    
     setStats((prev) => ({
       completed: prev.completed + 1,
       streak: prev.streak + 1,
       totalTime: prev.totalTime + timeInMinutes,
     }));
+
+    // Add completed task to streak list with completion timestamp
+    setStreakCompletedTasks((prev) => [
+      ...prev,
+      {
+        title: currentTask.title,
+        completedAt: completionTimestamp,
+      },
+    ]);
 
     setCurrentTask(null);
     setTimerSeconds(0);
@@ -269,6 +310,11 @@ export default function FocusExecutionApp() {
 
     setBacklog((prev) => [...prev, updatedTask]);
     setStats((prev) => ({ ...prev, streak: 0 }));
+    
+    // Clear streak completed tasks when streak resets
+    setStreakCompletedTasks([]);
+    clearStreakCompletedTasks();
+    
     setCurrentTask(null);
     setTimerSeconds(0);
     setIsTimerRunning(false);
@@ -287,6 +333,9 @@ export default function FocusExecutionApp() {
       completedSteps: [],
       note: '',
       lastFriction: null,
+      createdAt: Date.now(),
+      plannedTimeline: newTask.plannedTimeline || '',
+      completedAt: null,
     };
     setBacklog((prev) => [...prev, task]);
     setShowAddTask(false);
@@ -304,7 +353,7 @@ export default function FocusExecutionApp() {
   };
 
   const handleAddBrainDumpItemsToBacklog = (items) => {
-    // Create one backlog task per brain dump item
+    // Create one backlog task per brain dump item, carrying over timestamps and timeline
     const newTasks = items.map((item) => ({
       id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: item.text,
@@ -315,6 +364,9 @@ export default function FocusExecutionApp() {
       completedSteps: [],
       note: '',
       lastFriction: null,
+      createdAt: item.createdAt || Date.now(),
+      plannedTimeline: item.plannedTimeline || '',
+      completedAt: null,
     }));
 
     setBacklog((prev) => [...prev, ...newTasks]);
@@ -338,6 +390,7 @@ export default function FocusExecutionApp() {
     setShowFriction(false);
     setShowAssistant(false);
     setShowAssistantInModal(false);
+    setIsStreakPanelOpen(false);
     
     // Return to main view
     setView('main');
@@ -370,6 +423,84 @@ export default function FocusExecutionApp() {
         onItemsChange={setBrainDumpItems}
         onClear={handleClearBrainDump}
       />
+    );
+  }
+
+  // Backlog View
+  if (view === 'backlog') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#F7F3E9] via-[#FDF8ED] to-[#F7F3E9]">
+        {/* Header */}
+        <header className="border-b border-[#8B7355]/10 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+          <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 className="text-3xl font-['Crimson_Pro'] text-[#3E3833]">Task Backlog</h1>
+            <div className="flex items-center gap-2">
+              <FocusHomeButton onActivate={handleGoHome} />
+              <button
+                onClick={() => setView('main')}
+                className="p-2 hover:bg-[#E07A5F]/10 rounded-lg transition-all"
+              >
+                <X size={20} style={{ color: '#E07A5F' }} />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="max-w-6xl mx-auto px-4 py-8">
+          {/* Filter and Add Task */}
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setEnergyFilter('ALL')}
+                className={`px-4 py-2 rounded-lg font-['Work_Sans'] transition-all ${
+                  energyFilter === 'ALL'
+                    ? 'bg-[#E07A5F] text-white'
+                    : 'bg-white text-[#8B7355] hover:bg-[#F7F3E9]'
+                }`}
+              >
+                All ({backlog.length})
+              </button>
+              {Object.values(ENERGY_LEVELS).map((level) => {
+                const count = backlog.filter((t) => t.energy === level.key).length;
+                return (
+                  <button
+                    key={level.key}
+                    onClick={() => setEnergyFilter(level.key)}
+                    className={`px-4 py-2 rounded-lg font-['Work_Sans'] transition-all ${
+                      energyFilter === level.key
+                        ? 'text-white'
+                        : 'bg-white hover:bg-[#F7F3E9]'
+                    }`}
+                    style={{
+                      backgroundColor: energyFilter === level.key ? level.color : undefined,
+                      color: energyFilter === level.key ? 'white' : level.color,
+                    }}
+                  >
+                    {level.label} ({count})
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => setShowAddTask(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] hover:scale-105 transition-all shadow-warm"
+            >
+              <Plus size={20} />
+              Add Task
+            </button>
+          </div>
+
+          {/* Backlog Table */}
+          <div className="bg-white rounded-2xl shadow-warm overflow-hidden">
+            <BacklogTasksTable
+              tasks={filteredBacklog}
+              energyLevels={ENERGY_LEVELS}
+              onSelectTask={handleSelectTask}
+            />
+          </div>
+        </main>
+      </div>
     );
   }
 
@@ -422,12 +553,26 @@ export default function FocusExecutionApp() {
           <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
             <h1 className="text-3xl font-['Crimson_Pro'] text-[#3E3833]">Focus</h1>
             <div className="flex items-center gap-4">
-              {/* Always show streak, even when 0 */}
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F2A65A]/10 rounded-full">
-                <Award size={18} style={{ color: '#F2A65A' }} />
-                <span className="text-sm font-['Work_Sans'] text-[#3E3833]">
-                  Current streak: {stats.streak}
-                </span>
+              {/* Clickable streak indicator with expandable panel */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsStreakPanelOpen(!isStreakPanelOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-[#F2A65A]/10 rounded-full hover:bg-[#F2A65A]/20 transition-all hover:scale-105"
+                >
+                  <Award size={18} style={{ color: '#F2A65A' }} />
+                  <span className="text-sm font-['Work_Sans'] text-[#3E3833]">
+                    Current streak: {stats.streak}
+                  </span>
+                  {isStreakPanelOpen ? (
+                    <ChevronUp size={16} style={{ color: '#F2A65A' }} />
+                  ) : (
+                    <ChevronDown size={16} style={{ color: '#F2A65A' }} />
+                  )}
+                </button>
+                <StreakDetailsPanel
+                  tasks={streakCompletedTasks}
+                  isOpen={isStreakPanelOpen}
+                />
               </div>
               <button
                 onClick={() => setView('brainDump')}
@@ -495,91 +640,84 @@ export default function FocusExecutionApp() {
                   <div className="text-sm text-[#8B7355] mb-2 font-['Work_Sans']">Timer</div>
                   <div
                     className={`text-5xl font-['Crimson_Pro'] text-[#3E3833] mb-4 ${
-                      isTimerRunning ? 'animate-pulse-slow' : ''
+                      isTimerRunning ? 'animate-pulse' : ''
                     }`}
                   >
                     {formatTime(timerSeconds)}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setIsTimerRunning(!isTimerRunning)}
-                      className="flex-1 px-4 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] hover:scale-105 transition-all flex items-center justify-center gap-2"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] hover:scale-105 transition-all"
                     >
-                      {isTimerRunning ? <Pause size={18} /> : <Play size={18} />}
-                      {isTimerRunning ? 'Pause' : 'Play'}
+                      {isTimerRunning ? (
+                        <>
+                          <Pause size={18} />
+                          Pause
+                        </>
+                      ) : (
+                        <>
+                          <Play size={18} />
+                          Start
+                        </>
+                      )}
                     </button>
                     <button
                       onClick={() => {
                         setTimerSeconds(0);
                         setIsTimerRunning(false);
                       }}
-                      className="px-4 py-2 bg-[#8B7E74]/10 text-[#3E3833] rounded-lg hover:scale-105 transition-all"
+                      className="p-2 hover:bg-[#E07A5F]/10 rounded-lg transition-all"
+                      title="Reset timer"
                     >
-                      <RotateCcw size={18} />
+                      <RotateCcw size={18} style={{ color: '#E07A5F' }} />
                     </button>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-2xl p-6 shadow-warm">
-                  <div className="text-sm text-[#8B7355] mb-2 font-['Work_Sans']">Estimated</div>
-                  <div className="text-5xl font-['Crimson_Pro'] text-[#3E3833] mb-4">
-                    {currentTask.estimatedMinutes}
-                    <span className="text-2xl text-[#8B7355]">min</span>
+                  <div className="text-sm text-[#8B7355] mb-2 font-['Work_Sans']">
+                    Estimated Time
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock size={18} style={{ color: '#8B7355' }} />
-                    <span className="text-sm text-[#8B7355] font-['Work_Sans']">
-                      Time estimate
+                  <div className="flex items-center gap-2 mb-4">
+                    <Clock size={32} style={{ color: '#F2A65A' }} />
+                    <span className="text-3xl font-['Crimson_Pro'] text-[#3E3833]">
+                      {currentTask.estimatedMinutes} min
                     </span>
+                  </div>
+                  <div className="text-sm text-[#8B7355] font-['Work_Sans']">
+                    Energy: {ENERGY_LEVELS[currentTask.energy]?.label}
                   </div>
                 </div>
               </div>
 
               {/* Task Details */}
               <div className="bg-white rounded-2xl p-8 shadow-warm">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      {(() => {
-                        const energyLevel = ENERGY_LEVELS[currentTask.energy];
-                        const Icon = energyLevel?.icon || Battery;
-                        return (
-                          <div
-                            className="px-3 py-1 rounded-full text-sm font-['Work_Sans'] text-white"
-                            style={{ backgroundColor: energyLevel?.color || '#8B7355' }}
-                          >
-                            {energyLevel?.label || currentTask.energy}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    <h2 className="text-3xl font-['Crimson_Pro'] text-[#3E3833] mb-3">
-                      {currentTask.title}
-                    </h2>
-                    {currentTask.why && (
-                      <div className="flex items-start gap-2 text-[#8B7355] mb-4">
-                        <Target size={18} className="mt-1 flex-shrink-0" />
-                        <p className="font-['Work_Sans']">{currentTask.why}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <h2 className="text-3xl font-['Crimson_Pro'] text-[#3E3833] mb-4">
+                  {currentTask.title}
+                </h2>
 
-                {/* Steps */}
+                {currentTask.why && (
+                  <div className="mb-6 p-4 bg-[#F2A65A]/10 rounded-xl">
+                    <div className="text-sm text-[#8B7355] mb-1 font-['Work_Sans']">Why this matters:</div>
+                    <p className="text-[#3E3833] font-['Work_Sans']">{currentTask.why}</p>
+                  </div>
+                )}
+
                 {currentTask.steps && currentTask.steps.length > 0 && (
                   <div className="mb-6">
                     <h3 className="text-lg font-['Crimson_Pro'] text-[#3E3833] mb-3">Steps</h3>
                     <div className="space-y-2">
                       {currentTask.steps.map((step, index) => {
-                        const isCompleted = (currentTask.completedSteps || []).includes(index);
+                        const isCompleted = currentTask.completedSteps?.includes(index);
                         return (
                           <button
                             key={index}
                             onClick={() => handleToggleStep(index)}
-                            className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-[#F7F3E9] transition-colors text-left"
+                            className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-[#F7F3E9] transition-all text-left"
                           >
                             <div
-                              className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                              className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
                                 isCompleted
                                   ? 'bg-[#E07A5F] border-[#E07A5F]'
                                   : 'border-[#8B7355]/30'
@@ -603,16 +741,16 @@ export default function FocusExecutionApp() {
                   </div>
                 )}
 
-                {/* Note Section */}
-                <div className="border-t border-[#8B7355]/10 pt-6">
-                  <div className="flex items-center justify-between mb-3">
+                {/* Notes Section */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-['Crimson_Pro'] text-[#3E3833]">Notes</h3>
                     {!isEditingNote && (
                       <button
                         onClick={() => setIsEditingNote(true)}
                         className="text-sm text-[#E07A5F] hover:underline font-['Work_Sans']"
                       >
-                        {noteText ? 'Edit' : 'Add note'}
+                        {currentTask.note ? 'Edit' : 'Add note'}
                       </button>
                     )}
                   </div>
@@ -621,10 +759,10 @@ export default function FocusExecutionApp() {
                       <textarea
                         value={noteText}
                         onChange={(e) => setNoteText(e.target.value)}
-                        placeholder="Add any thoughts, blockers, or learnings..."
-                        className="w-full h-32 p-3 border border-[#8B7355]/20 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#E07A5F]/30 font-['Work_Sans'] text-[#3E3833]"
+                        placeholder="Add notes, learnings, or blockers..."
+                        className="w-full h-32 p-3 border border-[#8B7355]/20 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#E07A5F]/30 font-['Work_Sans']"
                       />
-                      <div className="flex gap-2 mt-2">
+                      <div className="mt-2 flex items-center gap-2">
                         <button
                           onClick={handleSaveNote}
                           className="px-4 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] hover:scale-105 transition-all"
@@ -633,10 +771,10 @@ export default function FocusExecutionApp() {
                         </button>
                         <button
                           onClick={() => {
-                            setNoteText(currentTask.note || '');
                             setIsEditingNote(false);
+                            setNoteText(currentTask.note || '');
                           }}
-                          className="px-4 py-2 bg-[#8B7E74]/10 text-[#3E3833] rounded-lg font-['Work_Sans'] hover:scale-105 transition-all"
+                          className="px-4 py-2 text-[#8B7355] hover:bg-[#F7F3E9] rounded-lg font-['Work_Sans'] transition-all"
                         >
                           Cancel
                         </button>
@@ -644,71 +782,46 @@ export default function FocusExecutionApp() {
                     </div>
                   ) : (
                     <p className="text-[#8B7355] font-['Work_Sans'] whitespace-pre-wrap">
-                      {noteText || 'No notes yet'}
+                      {currentTask.note || 'No notes yet'}
                     </p>
                   )}
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-4">
-                <button
-                  onClick={handleCompleteTask}
-                  className="flex-1 px-8 py-4 bg-[#E07A5F] text-white rounded-xl font-['Work_Sans'] text-lg shadow-warm hover:shadow-warm-lg transition-all hover:scale-105"
-                >
-                  Complete Task
-                </button>
-                <button
-                  onClick={handleSkipTask}
-                  className="px-8 py-4 bg-white text-[#8B7355] border-2 border-[#8B7355]/20 rounded-xl font-['Work_Sans'] text-lg shadow-warm hover:shadow-warm-lg transition-all hover:scale-105"
-                >
-                  Skip
-                </button>
+                {/* Action Buttons */}
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={handleCompleteTask}
+                    className="flex-1 px-6 py-3 bg-[#E07A5F] text-white rounded-xl font-['Work_Sans'] shadow-warm hover:shadow-warm-lg transition-all hover:scale-105"
+                  >
+                    Complete Task
+                  </button>
+                  <button
+                    onClick={handleSkipTask}
+                    className="px-6 py-3 bg-white text-[#8B7355] border-2 border-[#8B7355]/20 rounded-xl font-['Work_Sans'] hover:border-[#E07A5F] hover:text-[#E07A5F] transition-all"
+                  >
+                    Skip / Friction
+                  </button>
+                </div>
               </div>
             </div>
           )}
         </main>
 
-        {/* Friction Modal */}
-        {showFriction && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-warm-lg animate-scale-in">
-              <div className="flex items-center gap-3 mb-6">
-                <AlertCircle size={24} style={{ color: '#E07A5F' }} />
-                <h2 className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">
-                  What got in the way?
-                </h2>
-              </div>
-              <p className="text-[#8B7355] mb-6 font-['Work_Sans']">
-                Understanding friction helps you improve your workflow
-              </p>
-              <div className="space-y-2">
-                {FRICTION_REASONS.map((reason) => (
-                  <button
-                    key={reason}
-                    onClick={() => handleFrictionSelect(reason)}
-                    className="w-full p-4 text-left rounded-lg border border-[#8B7355]/20 hover:border-[#E07A5F] hover:bg-[#E07A5F]/5 transition-all font-['Work_Sans'] text-[#3E3833]"
-                  >
-                    {reason}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => setShowFriction(false)}
-                className="w-full mt-4 px-4 py-2 text-[#8B7355] hover:text-[#E07A5F] transition-colors font-['Work_Sans']"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+        {/* Modals */}
+        {showAddTask && (
+          <AddTaskModal
+            isOpen={showAddTask}
+            onClose={() => setShowAddTask(false)}
+            onAdd={handleAddTask}
+            energyLevels={ENERGY_LEVELS}
+          />
         )}
 
-        {/* Stats Modal */}
         {showStats && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-warm-lg animate-scale-in">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">Your Progress</h2>
+                <h2 className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">Your Stats</h2>
                 <button
                   onClick={() => setShowStats(false)}
                   className="p-2 hover:bg-[#E07A5F]/10 rounded-lg transition-all"
@@ -716,43 +829,81 @@ export default function FocusExecutionApp() {
                   <X size={20} style={{ color: '#E07A5F' }} />
                 </button>
               </div>
+
               <div className="space-y-6">
-                <div className="p-6 bg-[#F7F3E9] rounded-xl">
-                  <div className="text-sm text-[#8B7355] mb-2 font-['Work_Sans']">
-                    Tasks Completed
-                  </div>
-                  <div className="text-4xl font-['Crimson_Pro'] text-[#3E3833]">
+                <div className="flex items-center justify-between p-4 bg-[#F7F3E9] rounded-xl">
+                  <span className="text-[#8B7355] font-['Work_Sans']">Tasks Completed</span>
+                  <span className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">
                     {stats.completed}
-                  </div>
+                  </span>
                 </div>
-                <div className="p-6 bg-[#F7F3E9] rounded-xl">
-                  <div className="text-sm text-[#8B7355] mb-2 font-['Work_Sans']">
-                    Current Streak
-                  </div>
-                  <div className="text-4xl font-['Crimson_Pro'] text-[#3E3833]">
+
+                <div className="flex items-center justify-between p-4 bg-[#F2A65A]/10 rounded-xl">
+                  <span className="text-[#8B7355] font-['Work_Sans']">Current Streak</span>
+                  <span className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">
                     {stats.streak}
-                  </div>
+                  </span>
                 </div>
-                <div className="p-6 bg-[#F7F3E9] rounded-xl">
-                  <div className="text-sm text-[#8B7355] mb-2 font-['Work_Sans']">
-                    Total Focus Time
-                  </div>
-                  <div className="text-4xl font-['Crimson_Pro'] text-[#3E3833]">
-                    {stats.totalTime}
-                    <span className="text-xl text-[#8B7355]">min</span>
-                  </div>
+
+                <div className="flex items-center justify-between p-4 bg-[#E07A5F]/10 rounded-xl">
+                  <span className="text-[#8B7355] font-['Work_Sans']">Total Focus Time</span>
+                  <span className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">
+                    {stats.totalTime} min
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Assistant Modal */}
+        {showFriction && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-warm-lg animate-scale-in">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">
+                  What caused friction?
+                </h2>
+                <button
+                  onClick={() => setShowFriction(false)}
+                  className="p-2 hover:bg-[#E07A5F]/10 rounded-lg transition-all"
+                >
+                  <X size={20} style={{ color: '#E07A5F' }} />
+                </button>
+              </div>
+
+              <p className="text-[#8B7355] mb-6 font-['Work_Sans']">
+                Understanding friction helps you improve future task planning
+              </p>
+
+              <div className="space-y-2">
+                {FRICTION_REASONS.map((reason) => (
+                  <button
+                    key={reason}
+                    onClick={() => handleFrictionSelect(reason)}
+                    className="w-full p-4 text-left bg-[#F7F3E9] hover:bg-[#E07A5F]/10 rounded-xl transition-all font-['Work_Sans'] text-[#3E3833]"
+                  >
+                    {reason}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-6 p-4 bg-[#F2A65A]/10 rounded-xl flex items-start gap-2">
+                <AlertCircle size={18} style={{ color: '#F2A65A' }} className="mt-0.5" />
+                <p className="text-sm text-[#8B7355] font-['Work_Sans']">
+                  This will reset your streak and return the task to your backlog
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showAssistant && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-warm-lg animate-scale-in">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">Energy Assistant</h2>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-warm-lg animate-scale-in">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">
+                  Energy Assistant
+                </h2>
                 <button
                   onClick={() => setShowAssistant(false)}
                   className="p-2 hover:bg-[#E07A5F]/10 rounded-lg transition-all"
@@ -768,146 +919,5 @@ export default function FocusExecutionApp() {
     );
   }
 
-  // Backlog View
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F7F3E9] via-[#FDF8ED] to-[#F7F3E9]">
-      {/* Header */}
-      <header className="border-b border-[#8B7355]/10 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-3xl font-['Crimson_Pro'] text-[#3E3833]">Task Backlog</h1>
-          <div className="flex items-center gap-2">
-            <FocusHomeButton onActivate={handleGoHome} />
-            <button
-              onClick={() => setShowAddTask(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#E07A5F] text-white rounded-lg font-['Work_Sans'] hover:scale-105 transition-all"
-            >
-              <Plus size={20} />
-              Add Task
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        {/* Energy Filter */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          <button
-            onClick={() => setEnergyFilter('ALL')}
-            className={`px-4 py-2 rounded-lg font-['Work_Sans'] whitespace-nowrap transition-all ${
-              energyFilter === 'ALL'
-                ? 'bg-[#E07A5F] text-white'
-                : 'bg-white text-[#8B7355] hover:bg-[#E07A5F]/10'
-            }`}
-          >
-            All ({backlog.length})
-          </button>
-          {Object.values(ENERGY_LEVELS).map((level) => {
-            const count = backlog.filter((t) => t.energy === level.key).length;
-            return (
-              <button
-                key={level.key}
-                onClick={() => setEnergyFilter(level.key)}
-                className={`px-4 py-2 rounded-lg font-['Work_Sans'] whitespace-nowrap transition-all ${
-                  energyFilter === level.key
-                    ? 'text-white'
-                    : 'bg-white text-[#8B7355] hover:opacity-80'
-                }`}
-                style={{
-                  backgroundColor: energyFilter === level.key ? level.color : undefined,
-                }}
-              >
-                {level.label} ({count})
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Task List */}
-        {filteredBacklog.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">📋</div>
-            <h2 className="text-2xl font-['Crimson_Pro'] text-[#3E3833] mb-2">No tasks yet</h2>
-            <p className="text-[#8B7355] mb-6 font-['Work_Sans']">
-              {energyFilter === 'ALL'
-                ? 'Add your first task to get started'
-                : `No ${ENERGY_LEVELS[energyFilter]?.label} tasks`}
-            </p>
-            <div className="flex items-center justify-center gap-4">
-              <button
-                onClick={() => setShowAddTask(true)}
-                className="px-6 py-3 bg-[#E07A5F] text-white rounded-xl font-['Work_Sans'] shadow-warm hover:shadow-warm-lg transition-all hover:scale-105 flex items-center gap-2"
-              >
-                <Plus size={20} />
-                Add Task
-              </button>
-              <button
-                onClick={() => setView('brainDump')}
-                className="px-6 py-3 bg-white text-[#E07A5F] border-2 border-[#E07A5F] rounded-xl font-['Work_Sans'] shadow-warm hover:shadow-warm-lg transition-all hover:scale-105 flex items-center gap-2"
-              >
-                <Lightbulb size={20} />
-                Brain Dump
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredBacklog.map((task) => {
-              const energyLevel = ENERGY_LEVELS[task.energy];
-              const Icon = energyLevel?.icon || Battery;
-              return (
-                <button
-                  key={task.id}
-                  onClick={() => handleSelectTask(task)}
-                  className="w-full p-6 bg-white rounded-xl shadow-warm hover:shadow-warm-lg transition-all hover:scale-[1.02] text-left"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Icon size={20} style={{ color: energyLevel?.color }} />
-                      <span
-                        className="text-sm font-['Work_Sans'] px-2 py-1 rounded"
-                        style={{
-                          backgroundColor: `${energyLevel?.color}20`,
-                          color: energyLevel?.color,
-                        }}
-                      >
-                        {energyLevel?.label}
-                      </span>
-                    </div>
-                    {task.lastFriction && (
-                      <div className="flex items-center gap-1 text-xs text-[#8B7355]">
-                        <AlertCircle size={14} />
-                        <span className="font-['Work_Sans']">Had friction</span>
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="text-xl font-['Crimson_Pro'] text-[#3E3833] mb-2">
-                    {task.title}
-                  </h3>
-                  {task.why && (
-                    <p className="text-[#8B7355] text-sm mb-2 font-['Work_Sans']">{task.why}</p>
-                  )}
-                  <div className="flex items-center gap-4 text-sm text-[#8B7355]">
-                    {task.steps && task.steps.length > 0 && (
-                      <span className="font-['Work_Sans']">{task.steps.length} steps</span>
-                    )}
-                    <span className="font-['Work_Sans']">~{task.estimatedMinutes} min</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </main>
-
-      {/* Add Task Modal */}
-      {showAddTask && (
-        <AddTaskModal
-          energyLevels={ENERGY_LEVELS}
-          onAdd={handleAddTask}
-          onClose={() => setShowAddTask(false)}
-        />
-      )}
-    </div>
-  );
+  return null;
 }

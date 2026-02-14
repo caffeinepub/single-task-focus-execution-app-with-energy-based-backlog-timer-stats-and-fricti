@@ -1,30 +1,31 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T14:50:13.659Z",
-  "summary": "REQ-37 and REQ-38 appear to be implemented: the diff indicates Brain Dump clearing is hardened to only affect Brain Dump storage keys and Brain Dump UI helper text was added/adjusted to clarify backlog tasks remain. The diff also includes additional Brain Dump-related UI/behavior changes not explicitly requested.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-14T16:47:15.276Z",
+  "summary": "Diff adds timestamp/planned-timeline fields to client-side models with normalization for legacy localStorage data, introduces date/time formatting helpers, and implements warm-themed table views for Backlog tasks and Brain Dump items including creation date/time, planned timeline, and completed time placeholder. It also adds planned timeline input to Add Task modal and records createdAt for extracted Brain Dump items. Evidence for recording completion timestamps when completing a task is not visible in the truncated FocusExecutionApp diff.",
+  "missing_requirements": [
     {
-      "description": "Added/expanded Brain Dump speech-to-text functionality (listening state, transcript append, resetTranscript, mic icons) beyond the requested backlog persistence + helper text change.",
-      "reason": "BuildRequest only asks to ensure clearing Brain Dump does not affect backlog tasks and to add helper copy near clear action; speech-to-text is not requested.",
+      "id": "REQ-42",
+      "requirement": "Capture and store completion time when a task is completed.",
+      "reason": "BacklogTask model includes a completedAt field and the Backlog table renders it, but the diff summary does not show any code path that sets completedAt at the moment a task is completed (FocusExecutionApp.jsx is truncated before the completion logic).",
       "evidence": [
-        "frontend/src/components/BrainDumpView.tsx"
-      ]
-    },
-    {
-      "description": "Added/expanded Brain Dump item category override tracking and reclassification behavior when editing item text (categoryOverridden, suggested vs selectedCategory, error fallback logic).",
-      "reason": "Not requested by REQ-37/REQ-38; these relate to categorization/editing behavior rather than clearing behavior or helper text.",
-      "evidence": [
-        "frontend/src/components/BrainDumpView.tsx"
+        "frontend/src/lib/taskModels.ts",
+        "frontend/src/components/BacklogTasksTable.tsx",
+        "frontend/src/FocusExecutionApp.jsx (truncated)"
       ]
     }
   ],
-  "confidence": 0.66,
+  "hallucinated_features": [],
+  "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/FocusExecutionApp.jsx",
+    "frontend/src/components/AddTaskModal.tsx",
+    "frontend/src/components/BacklogTasksTable.tsx",
+    "frontend/src/components/BrainDumpItemsTable.tsx",
     "frontend/src/components/BrainDumpView.tsx",
+    "frontend/src/lib/dateTimeFormat.ts",
+    "frontend/src/lib/taskModels.ts",
     "project_state.json"
   ]
 }

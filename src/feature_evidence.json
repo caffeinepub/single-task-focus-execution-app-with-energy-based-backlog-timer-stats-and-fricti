@@ -2,11 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-that-clearing-deleting-the-brain-dump-clearing-the-brain-dump-draft-text-and-or-extracted-brain-dump-items-never-removes-or-alters-tasks-that-have-already-been-added-to-the-main-tasks-backlog-stored-under-the-existing-tasks-backlog-key",
-      "featureTitle": "Ensure that clearing/deleting the Brain Dump (clearing the Brain Dump draft text and/or extracted Brain Dump items) never removes or alters tasks that have already been added to the main tasks backlog (stored under the existing 'tasks-backlog' key).",
+      "featureId": "feature-extend-the-client-side-data-models-for-backlog-tasks-and-brain-dump-items-to-include-timestamp-metadata-1-creation-date-time-2-planned-timeline-for-doing-the-task-and-3-completion-time-ensure-existing-persisted-data-loads-safely-when-these-fields-are-missing",
+      "featureTitle": "Extend the client-side data models for Backlog tasks and Brain Dump items to include timestamp metadata: (1) creation date/time, (2) planned timeline for doing the task, and (3) completion time; ensure existing persisted data loads safely when these fields are missing.",
       "files": [
         "frontend/src/FocusExecutionApp.jsx",
-        "frontend/src/components/BrainDumpView.tsx"
+        "frontend/src/components/BrainDumpView.tsx",
+        "frontend/src/lib/taskModels.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -16,14 +17,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-37"
+        "REQ-41"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-adjust-brain-dump-view-helper-text-to-clearly-state-that-clearing-the-brain-dump-only-clears-the-brain-dump-draft-items-and-that-tasks-already-added-to-the-backlog-will-remain",
-      "featureTitle": "Add/adjust Brain Dump view helper text to clearly state that clearing the Brain Dump only clears the Brain Dump draft/items and that tasks already added to the backlog will remain.",
+      "featureId": "feature-capture-and-store-creation-date-time-and-planned-timeline-values-when-creating-tasks-add-task-modal-and-brain-dump-add-to-backlog-flow-and-capture-and-store-completion-time-when-a-task-is-completed",
+      "featureTitle": "Capture and store creation date/time and planned timeline values when creating tasks (Add Task modal and Brain Dump -> Add to Backlog flow), and capture and store completion time when a task is completed.",
       "files": [
+        "frontend/src/FocusExecutionApp.jsx",
+        "frontend/src/components/AddTaskModal.tsx",
         "frontend/src/components/BrainDumpView.tsx"
       ],
       "components": [
@@ -34,7 +37,46 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-38"
+        "REQ-42"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-backlog-section-ui-to-display-tasks-in-a-table-that-includes-columns-for-creation-date-creation-time-planned-timeline-and-completed-time-blank-placeholder-if-not-completed",
+      "featureTitle": "Update the Backlog section UI to display tasks in a table that includes columns for creation date, creation time, planned timeline, and completed time (blank/placeholder if not completed).",
+      "files": [
+        "frontend/src/FocusExecutionApp.jsx",
+        "frontend/src/components/BacklogTasksTable.tsx",
+        "frontend/src/lib/dateTimeFormat.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-43"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-brain-dump-section-ui-to-display-extracted-brain-dump-items-in-a-table-that-includes-columns-for-creation-date-creation-time-planned-timeline-and-completed-time-blank-placeholder-if-not-completed",
+      "featureTitle": "Update the Brain Dump section UI to display extracted Brain Dump items in a table that includes columns for creation date, creation time, planned timeline, and completed time (blank/placeholder if not completed).",
+      "files": [
+        "frontend/src/components/BrainDumpItemsTable.tsx",
+        "frontend/src/components/BrainDumpView.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-44"
       ],
       "confidence": "high"
     }

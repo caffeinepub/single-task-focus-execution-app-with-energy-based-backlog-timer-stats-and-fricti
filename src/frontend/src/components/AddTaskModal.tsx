@@ -15,6 +15,7 @@ interface AddTaskModalProps {
     energy: EnergyCategory;
     steps: string[];
     estimatedMinutes: number;
+    plannedTimeline?: string;
   }) => void;
   energyLevels: {
     [key: string]: {
@@ -38,6 +39,7 @@ export default function AddTaskModal({
   const [energy, setEnergy] = useState<EnergyCategory>('STEADY');
   const [steps, setSteps] = useState('');
   const [estimatedMinutes, setEstimatedMinutes] = useState('30');
+  const [plannedTimeline, setPlannedTimeline] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +59,7 @@ export default function AddTaskModal({
       energy,
       steps: stepsArray,
       estimatedMinutes: parseInt(estimatedMinutes) || 30,
+      plannedTimeline: plannedTimeline.trim(),
     });
 
     // Reset form
@@ -65,114 +68,127 @@ export default function AddTaskModal({
     setEnergy('STEADY');
     setSteps('');
     setEstimatedMinutes('30');
+    setPlannedTimeline('');
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-warm-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-[#8B7355]/10 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">Add Task</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-warm-lg animate-scale-in">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-['Crimson_Pro'] text-[#3E3833]">Add New Task</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-[#8B7355]/10 rounded-lg transition-all"
+            className="p-2 hover:bg-[#E07A5F]/10 rounded-lg transition-all"
           >
-            <X size={20} style={{ color: '#8B7355' }} />
+            <X size={20} style={{ color: '#E07A5F' }} />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
-          <div className="space-y-2">
-            <Label htmlFor="task-title" className="text-sm font-['Work_Sans'] text-[#3E3833] font-medium">
+          <div>
+            <Label htmlFor="title" className="text-[#3E3833] font-['Work_Sans'] mb-2 block">
               Task Title *
             </Label>
             <Input
-              id="task-title"
+              id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="What do you need to do?"
+              placeholder="What needs to be done?"
               className="w-full font-['Work_Sans']"
               required
             />
           </div>
 
           {/* Why */}
-          <div className="space-y-2">
-            <Label htmlFor="task-why" className="text-sm font-['Work_Sans'] text-[#3E3833] font-medium">
-              Why is this important?
+          <div>
+            <Label htmlFor="why" className="text-[#3E3833] font-['Work_Sans'] mb-2 block">
+              Why does this matter?
             </Label>
             <Textarea
-              id="task-why"
+              id="why"
               value={why}
               onChange={(e) => setWhy(e.target.value)}
-              placeholder="Optional: What's the purpose or motivation?"
-              className="w-full font-['Work_Sans'] min-h-[80px]"
-              rows={3}
+              placeholder="Understanding the purpose helps maintain motivation..."
+              className="w-full h-20 font-['Work_Sans']"
             />
           </div>
 
-          {/* Energy Category Selector */}
-          <EnergyCategorySelector
-            selected={energy}
-            onSelect={setEnergy}
-            energyLevels={energyLevels}
-          />
+          {/* Energy Category */}
+          <div>
+            <Label className="text-[#3E3833] font-['Work_Sans'] mb-3 block">
+              Energy Level Required
+            </Label>
+            <EnergyCategorySelector
+              energyLevels={energyLevels}
+              selected={energy}
+              onSelect={setEnergy}
+            />
+          </div>
+
+          {/* Planned Timeline */}
+          <div>
+            <Label htmlFor="plannedTimeline" className="text-[#3E3833] font-['Work_Sans'] mb-2 block">
+              Planned Timeline
+            </Label>
+            <Input
+              id="plannedTimeline"
+              type="text"
+              value={plannedTimeline}
+              onChange={(e) => setPlannedTimeline(e.target.value)}
+              placeholder="e.g., Next week, Tomorrow, End of month"
+              className="w-full font-['Work_Sans']"
+            />
+          </div>
 
           {/* Steps */}
-          <div className="space-y-2">
-            <Label htmlFor="task-steps" className="text-sm font-['Work_Sans'] text-[#3E3833] font-medium">
-              Steps (optional)
+          <div>
+            <Label htmlFor="steps" className="text-[#3E3833] font-['Work_Sans'] mb-2 block">
+              Steps (one per line)
             </Label>
             <Textarea
-              id="task-steps"
+              id="steps"
               value={steps}
               onChange={(e) => setSteps(e.target.value)}
-              placeholder="One step per line&#10;Step 1&#10;Step 2&#10;Step 3"
-              className="w-full font-['Work_Sans'] min-h-[100px]"
-              rows={4}
+              placeholder="Break down the task into smaller steps..."
+              className="w-full h-32 font-['Work_Sans']"
             />
-            <p className="text-xs text-[#8B7355] font-['Work_Sans']">
-              Enter each step on a new line
-            </p>
           </div>
 
           {/* Estimated Time */}
-          <div className="space-y-2">
-            <Label htmlFor="task-estimate" className="text-sm font-['Work_Sans'] text-[#3E3833] font-medium">
+          <div>
+            <Label htmlFor="estimatedMinutes" className="text-[#3E3833] font-['Work_Sans'] mb-2 block">
               Estimated Time (minutes)
             </Label>
             <Input
-              id="task-estimate"
+              id="estimatedMinutes"
               type="number"
               value={estimatedMinutes}
               onChange={(e) => setEstimatedMinutes(e.target.value)}
-              placeholder="30"
               min="1"
               className="w-full font-['Work_Sans']"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1 font-['Work_Sans']"
-            >
-              Cancel
-            </Button>
+          <div className="flex items-center gap-4 pt-4">
             <Button
               type="submit"
-              className="flex-1 bg-[#E07A5F] hover:bg-[#E07A5F]/90 text-white font-['Work_Sans'] flex items-center justify-center gap-2"
+              className="flex-1 bg-[#E07A5F] hover:bg-[#E07A5F]/90 text-white font-['Work_Sans']"
             >
-              <Plus size={18} />
+              <Plus size={18} className="mr-2" />
               Add Task
+            </Button>
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="outline"
+              className="px-6 font-['Work_Sans']"
+            >
+              Cancel
             </Button>
           </div>
         </form>

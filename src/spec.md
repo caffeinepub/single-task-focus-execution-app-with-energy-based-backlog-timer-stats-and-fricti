@@ -1,11 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Ensure tasks added from Brain Dump to the main backlog persist even after clearing/deleting the Brain Dump, and clarify this behavior in the UI.
+**Goal:** Add creation timestamps, planned timelines, and completion timestamps to Backlog tasks and Brain Dump items, and present both sections in table views showing these fields.
 
 **Planned changes:**
-- Update Brain Dump clear/delete behavior so it only clears Brain Dump storage keys (`brain-dump-draft`, `brain-dump-items`) and never removes/overwrites tasks stored in `tasks-backlog`.
-- Verify tasks added via “Add All to Backlog” / “Add Selected” remain in the Backlog after clearing Brain Dump and after a page reload.
-- Add/adjust helper text in the Brain Dump view to state that clearing Brain Dump does not delete tasks already added to the backlog (keep “local” framing and English-only copy).
+- Extend the client-side data models for Backlog tasks and Brain Dump items to include: created date/time, planned timeline, and completion time (with safe loading for previously persisted items missing these fields).
+- Capture and store created-at timestamps automatically when creating new Backlog tasks (Add Task modal and Brain Dump → Add to Backlog) and when generating Brain Dump items from draft text; store planned timeline inputs when provided.
+- Record and store a completion timestamp when a task is completed.
+- Update Backlog UI to a table view with columns: Creation date, Creation time, Planned timeline, Completed time (placeholder when not completed); keep styling consistent with the warm theme and workable on mobile.
+- Update Brain Dump UI to a table view for extracted items with the same columns and placeholders (noting Brain Dump items may not have completion, so show a consistent placeholder).
 
-**User-visible outcome:** Users can clear the Brain Dump without losing any tasks they already added to the Backlog, and the Brain Dump UI clearly communicates that tasks will remain.
+**User-visible outcome:** Backlog and Brain Dump now show items in tables with creation date/time and planned timeline fields, and Backlog tasks also show when they were completed (or a placeholder when not completed).

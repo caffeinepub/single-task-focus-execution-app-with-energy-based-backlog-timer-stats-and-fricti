@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 31,
+  "projectStateVersion": 35,
   "summary": "React-based Focus & Execution Management System: a single-task focus app that shows one task at a time, supports energy-based task selection, backlog management, timer, step checklist, notes, stats, friction logging, plus a home-page brain-dump intake that can be converted into tasks; now includes AI-assisted parsing to turn freeform brain dumps into individual task items, with optional assistant-based categorization, all with persistent async storage.",
   "architectural_notes": [
     "Persist data via async window.storage with keys: 'current-task', 'tasks-backlog', 'current-energy', 'user-stats'.",
@@ -11,14 +11,15 @@
     "Brain Dump should optionally support speech-to-text input (e.g., via Web Speech API) behind a mic button, appending transcribed text into the draft brain-dump field.",
     "Brain Dump conversion must reliably segregate a single freeform dump into multiple discrete task items (not one combined task); allow AI-assisted parsing to improve splitting accuracy.",
     "Brain Dump extractor should better split speech-to-text/run-on paragraphs by detecting multi-task markers (e.g., and/then/also/after that, semicolons, bullets) while avoiding over-splitting short phrases.",
-    "Brain Dump deletion/clearing must not remove or affect tasks already converted/added to 'tasks-backlog'; tasks and brain-dump state are persisted and managed independently."
+    "Brain Dump deletion/clearing must not remove or affect tasks already converted/added to 'tasks-backlog'; tasks and brain-dump state are persisted and managed independently.",
+    "Extend Task model to include timestamps/fields for: createdAt (date/time), optional planned timeline window (e.g., startAt/dueAt or scheduledRange), and completedAt; ensure persisted with existing async storage and shown in Backlog/Brain Dump tables."
   ],
   "known_issues": [
     "Focus button does not consistently navigate back to the Home page from all views/screens.",
     "Streak details are not reliably visible/accessible from the Home page.",
     "Tasks created from Brain Dump are being removed/lost when the Brain Dump is deleted/cleared; converted tasks should remain in the tasks list/backlog."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-implement-the-focus-execution-management-system-ui-as-a-single-react-artifact-file-one-jsx-file-that-contains-all-screens-and-modals-described-energy-selection-empty-state-current-task-view-backlog-view-add-task-modal-stats-dashboard-modal-and-friction-log-modal-with-user-facing-text-in-english",
@@ -323,6 +324,54 @@
         "REQ-38"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-persistent-tracking-of-which-tasks-were-completed-as-part-of-the-current-streak-so-the-app-can-display-a-list-of-completed-tasks-that-contribute-to-the-current-streak-value",
+      "title": "Add persistent tracking of which tasks were completed as part of the current streak, so the app can display a list of completed tasks that contribute to the current streak value.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-streak-indicator-in-the-home-main-header-clickable-tappable-to-expand-collapse-a-streak-details-panel-that-shows-the-list-of-completed-tasks-in-the-current-streak-english-user-facing-text",
+      "title": "Make the streak indicator in the Home (main) header clickable/tappable to expand/collapse a streak details panel that shows the list of completed tasks in the current streak (English user-facing text).",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-client-side-data-models-for-backlog-tasks-and-brain-dump-items-to-include-timestamp-metadata-1-creation-date-time-2-planned-timeline-for-doing-the-task-and-3-completion-time-ensure-existing-persisted-data-loads-safely-when-these-fields-are-missing",
+      "title": "Extend the client-side data models for Backlog tasks and Brain Dump items to include timestamp metadata: (1) creation date/time, (2) planned timeline for doing the task, and (3) completion time; ensure existing persisted data loads safely when these fields are missing.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-capture-and-store-creation-date-time-and-planned-timeline-values-when-creating-tasks-add-task-modal-and-brain-dump-add-to-backlog-flow-and-capture-and-store-completion-time-when-a-task-is-completed",
+      "title": "Capture and store creation date/time and planned timeline values when creating tasks (Add Task modal and Brain Dump -> Add to Backlog flow), and capture and store completion time when a task is completed.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-backlog-section-ui-to-display-tasks-in-a-table-that-includes-columns-for-creation-date-creation-time-planned-timeline-and-completed-time-blank-placeholder-if-not-completed",
+      "title": "Update the Backlog section UI to display tasks in a table that includes columns for creation date, creation time, planned timeline, and completed time (blank/placeholder if not completed).",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-brain-dump-section-ui-to-display-extracted-brain-dump-items-in-a-table-that-includes-columns-for-creation-date-creation-time-planned-timeline-and-completed-time-blank-placeholder-if-not-completed",
+      "title": "Update the Brain Dump section UI to display extracted Brain Dump items in a table that includes columns for creation date, creation time, planned timeline, and completed time (blank/placeholder if not completed).",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -437,6 +486,18 @@
     {
       "id": "AR-19",
       "summary": "Ensure tasks created/added from Brain Dump persist in the main tasks list/backlog even after the Brain Dump draft/items are deleted/cleared",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Make the streak indicator expandable/clickable to show a list of completed tasks contributing to the current streak",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Add task timestamps and history: capture creation date/time, planned timeline (start/due or scheduled window), and completion time; display these fields in a table for tasks in Backlog and Brain Dump sections",
       "reqIds": [],
       "status": "pending"
     }
