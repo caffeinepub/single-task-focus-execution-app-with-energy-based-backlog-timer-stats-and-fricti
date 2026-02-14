@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --radius: 0.625rem;
+        /* Warm color palette */
+        --terracotta: #E07A5F;
+        --warm-amber: #F2A65A;
+        --soft-brown: #C89F7E;
+        --muted-brown: #8B7E74;
+        --dark-brown: #3E3833;
+        --medium-brown: #8B7355;
+        --warm-bg-1: #F7F3E9;
+        --warm-bg-2: #FDF8ED;
+        
+        /* OKLCH conversions for theme compatibility */
+        --background: 0.96 0.02 85;
+        --foreground: 0.25 0.01 45;
+        --card: 1 0 0;
+        --card-foreground: 0.25 0.01 45;
+        --popover: 1 0 0;
+        --popover-foreground: 0.25 0.01 45;
+        --primary: 0.62 0.12 35;
+        --primary-foreground: 0.985 0 0;
+        --secondary: 0.75 0.08 55;
+        --secondary-foreground: 0.25 0.01 45;
+        --muted: 0.92 0.02 75;
+        --muted-foreground: 0.55 0.03 45;
+        --accent: 0.75 0.08 55;
+        --accent-foreground: 0.25 0.01 45;
+        --destructive: 0.577 0.245 27.325;
+        --destructive-foreground: 0.985 0 0;
+        --border: 0.55 0.03 45 / 0.2;
+        --input: 0.55 0.03 45 / 0.2;
+        --ring: 0.62 0.12 35;
+    }
+
+    .dark {
+        --background: 0.25 0.01 45;
+        --foreground: 0.96 0.02 85;
+        --card: 0.3 0.01 45;
+        --card-foreground: 0.96 0.02 85;
+        --popover: 0.3 0.01 45;
+        --popover-foreground: 0.96 0.02 85;
+        --primary: 0.75 0.08 55;
+        --primary-foreground: 0.25 0.01 45;
+        --secondary: 0.4 0.02 45;
+        --secondary-foreground: 0.96 0.02 85;
+        --muted: 0.4 0.02 45;
+        --muted-foreground: 0.7 0.04 55;
+        --accent: 0.5 0.03 45;
+        --accent-foreground: 0.96 0.02 85;
+        --destructive: 0.704 0.191 22.216;
+        --destructive-foreground: 0.96 0.02 85;
+        --border: 1 0 0 / 0.15;
+        --input: 1 0 0 / 0.15;
+        --ring: 0.62 0.12 35;
+    }
+
+    * {
+        @apply border-border;
+    }
+    
+    body {
+        @apply bg-background text-foreground;
+        font-family: 'Work Sans', sans-serif;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Crimson Pro', serif;
+    }
+}
+
+@layer utilities {
+    /* Warm shadows */
+    .shadow-warm {
+        box-shadow: 0 2px 8px rgba(139, 115, 85, 0.08), 0 1px 3px rgba(139, 115, 85, 0.12);
+    }
+    
+    .shadow-warm-lg {
+        box-shadow: 0 4px 16px rgba(139, 115, 85, 0.1), 0 2px 6px rgba(139, 115, 85, 0.12);
+    }
+    
+    /* Animations */
+    @keyframes slide-up {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes scale-in {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    @keyframes stagger {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes pulse-slow {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+    
+    .animate-slide-up {
+        animation: slide-up 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .animate-fade-in {
+        animation: fade-in 0.3s ease-out;
+    }
+    
+    .animate-scale-in {
+        animation: scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .animate-stagger {
+        animation: stagger 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    }
+    
+    .animate-pulse-slow {
+        animation: pulse-slow 2s ease-in-out infinite;
+    }
+}

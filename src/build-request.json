@@ -1,0 +1,106 @@
+{
+  "kind": "build_request",
+  "title": "Add Brain Dump page on home to convert notes into categorized tasks",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-17",
+      "text": "Add a new Brain Dump view/section accessible from the main home screen (the same top-level area as the current 'main' and 'backlog' views) that lets the user paste/type a freeform brain dump and turns it into individual brain-dump items.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "Can you make a brain dump page on main home page in which i can give all brain dump which can be moved in a list of tasks which ai can help categorise in various task categories"
+        ]
+      },
+      "acceptanceCriteria": [
+        "From the home screen, the user can open a Brain Dump page/section without leaving the app flow (no external links).",
+        "The Brain Dump page provides a large multiline input for freeform text and an action to convert/split the text into a list of discrete items (e.g., by newline and/or bullet separators).",
+        "After conversion, each item appears as a row/card in a Brain Dump list and can be edited or removed before being turned into a task.",
+        "All user-facing text on this page is in English and matches the existing warm theme styling."
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Integrate the existing local energy categorization assistant/heuristics into the Brain Dump list so each brain-dump item can be categorized into one of the four existing energy categories (DEEP, STEADY, LOW, NONE) and show the suggested category per item.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "ai can help categorise in various task categories"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each brain-dump item can show a suggested energy category using the existing local deterministic classifier (no external AI calls).",
+        "The suggested category is displayed using the existing energy labels/colors (Deep Focus, Steady Work, Low Energy, No-Brain).",
+        "The user can override/change the category for an item before converting it into a task (using the same 4 categories)."
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Allow moving one or multiple brain-dump items into the existing tasks backlog by converting them into Task objects that match the current Task shape used in the app and persisting them into the existing 'tasks-backlog' storage key.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "which can be moved in a list of tasks"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The user can add a single brain-dump item to the backlog and also perform a bulk add for all (or selected) items.",
+        "Converted tasks match the app’s existing Task model fields (id, title, why, energy, steps, estimatedMinutes, completedSteps, note, lastFriction) and appear in the Backlog view immediately after adding.",
+        "After adding items to the backlog, the Brain Dump list updates accordingly (e.g., removes moved items or clearly marks them as moved).",
+        "No changes are required to the backend canister for this feature; all behavior works client-side like the rest of the task system."
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "text": "Persist Brain Dump draft text and/or the Brain Dump item list locally so the user does not lose their brain dump if they refresh the page, and restore it on load with graceful handling if the key is missing or corrupted.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "brain dump"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Brain Dump content survives a full page refresh and is restored on app load.",
+        "Storage reads/writes are wrapped in try/catch and missing keys do not break the UI (consistent with existing storage helper behavior).",
+        "Clearing the Brain Dump (explicit user action) removes the stored draft/list and resets the UI state."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify files under frontend/src/components/ui (read-only UI component sources must be composed, not edited).",
+    "Do not edit immutable frontend hook paths listed in SYSTEM_CONTEXT (e.g., frontend/src/main.tsx, frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts).",
+    "Do not introduce external AI/LLM calls; use the existing deterministic local categorization logic.",
+    "Keep the backend as a single-actor Motoko canister; this feature should not require backend changes."
+  ],
+  "nonGoals": [
+    "Adding new energy categories beyond the existing four (DEEP, STEADY, LOW, NONE).",
+    "Implementing third-party integrations (external databases, external AI services, webhooks, or real-time messaging).",
+    "Changing the existing task completion, friction logging, timer, or stats behaviors beyond what is necessary to accept newly created tasks in the backlog."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

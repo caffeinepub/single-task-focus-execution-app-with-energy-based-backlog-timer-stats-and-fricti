@@ -1,0 +1,10 @@
+{
+  "frontend/src/App.tsx": "Thin wrapper component that renders the main FocusExecutionApp component.",
+  "frontend/src/FocusExecutionApp.jsx": "Complete single-file Focus & Execution Management System with energy selection, task management, timer, backlog, stats, friction logging, AI assistant integration, and new Brain Dump view accessible from header that converts freeform notes into categorized tasks with full persistence.",
+  "frontend/src/index.css": "Global styles with Google Fonts (Crimson Pro and Work Sans), warm color palette in OKLCH format, custom shadow utilities, and animation keyframes for slide-up, fade-in, scale-in, stagger, and pulse effects.",
+  "frontend/index.html": "HTML entry point with Google Fonts preconnect and links for Crimson Pro and Work Sans typography.",
+  "frontend/tailwind.config.js": "Extended Tailwind configuration with warm shadow utilities (shadow-warm, shadow-warm-lg) and custom animation keyframes/utilities for the specified cubic-bezier easing and timing requirements.",
+  "frontend/src/lib/taskEnergyClassifier.ts": "Local deterministic classifier that analyzes task text using keyword matching, complexity indicators, and time patterns to suggest one of four energy categories (DEEP/STEADY/LOW/NONE) with an explanation and confidence level; works offline without external AI/LLM calls.",
+  "frontend/src/components/TaskEnergyAssistant.tsx": "Chatbot-style assistant component with message history, input form, and category suggestion display; supports standalone usage and integration with Add Task modal via optional props for initial text and apply callback.",
+  "frontend/src/components/BrainDumpView.tsx": "Brain Dump component that provides a multiline input for capturing freeform thoughts, converts text into discrete items split by newlines/bullets, displays each item with AI-suggested energy categories (using local classifier), allows inline editing and category overrides, and supports single or bulk add to backlog with local storage persistence."
+}

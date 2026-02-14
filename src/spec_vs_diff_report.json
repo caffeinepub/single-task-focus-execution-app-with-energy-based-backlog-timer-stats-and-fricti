@@ -1,0 +1,42 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-14T12:40:12.607Z",
+  "summary": "Diff adds a new BrainDumpView component with draft-to-items conversion, local energy classification suggestions with override, selection for bulk actions, and removal/editing. FocusExecutionApp is modified to include Brain Dump storage keys/state and a new view value ('brainDump'), but the truncated diff does not provide enough evidence for full navigation wiring, backlog Task-shape conversion/persistence, or parent-managed persistence/clear behaviors.",
+  "missing_requirements": [
+    {
+      "id": "REQ-17",
+      "requirement": "Add a new Brain Dump view/section accessible from the main home screen (same top-level area as 'main' and 'backlog').",
+      "reason": "Although FocusExecutionApp introduces view state including 'brainDump' and imports BrainDumpView, the provided truncated diff does not show any UI control on the home screen/header that switches to this view, nor the rendering conditional that displays BrainDumpView when selected.",
+      "evidence": [
+        "frontend/src/FocusExecutionApp.jsx"
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "requirement": "Convert brain-dump items into Task objects matching the app’s Task model and persist them into the existing 'tasks-backlog' storage key so they appear in Backlog immediately; update Brain Dump list accordingly.",
+      "reason": "BrainDumpView calls an onAddToBacklog callback and removes items locally, but the diff summary does not show the implementation in FocusExecutionApp that maps BrainDumpItem to the required Task fields (id, title, why, energy, steps, estimatedMinutes, completedSteps, note, lastFriction) and persists to STORAGE_KEYS.TASKS_BACKLOG, nor the immediate backlog refresh behavior.",
+      "evidence": [
+        "frontend/src/components/BrainDumpView.tsx",
+        "frontend/src/FocusExecutionApp.jsx"
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "requirement": "Persist Brain Dump draft text and/or item list locally and restore it on load with graceful handling; clearing removes stored state and resets UI.",
+      "reason": "FocusExecutionApp defines storage keys for brain-dump draft/items and has try/catch storage helpers, and BrainDumpView exposes onDraftChange/onItemsChange/onClear hooks; however, the truncated diff does not show wiring that (a) loads brain-dump draft/items into initialDraft/initialItems, (b) writes changes back to localStorage, and (c) implements a clear action that removes stored keys and resets state.",
+      "evidence": [
+        "frontend/src/FocusExecutionApp.jsx",
+        "frontend/src/components/BrainDumpView.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [],
+  "confidence": 0.62,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/FocusExecutionApp.jsx",
+    "frontend/src/components/BrainDumpView.tsx",
+    "project_state.json"
+  ]
+}

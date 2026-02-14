@@ -1,0 +1,93 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Brain Dump view to split notes, categorize by energy, and add to backlog",
+  "requirements": [
+    {
+      "id": "REQ-17",
+      "summary": "Add a Brain Dump top-level view on the home screen that converts freeform text into editable/removable brain-dump items.",
+      "acceptanceCriteria": [
+        "From the home screen, the user can open a Brain Dump page/section without leaving the app flow (no external links).",
+        "The Brain Dump page provides a large multiline input for freeform text and an action to convert/split the text into a list of discrete items (e.g., by newline and/or bullet separators).",
+        "After conversion, each item appears as a row/card in a Brain Dump list and can be edited or removed before being turned into a task.",
+        "All user-facing text on this page is in English and matches the existing warm theme styling."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/BrainDumpView.tsx",
+          "operation": "create",
+          "description": "Create a BrainDumpView component that renders: (1) a large multiline draft input, (2) an action to split/convert the draft into discrete brain-dump items (handling newlines and common bullet prefixes), and (3) an items list where each item can be edited inline and removed. Keep styling consistent with the existing warm theme. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/FocusExecutionApp.jsx",
+          "operation": "modify",
+          "description": "Add a new top-level view state (e.g., 'brainDump') alongside 'main' and 'backlog', add in-app navigation controls to open/close the Brain Dump view from the same header/top-level area, and wire the new BrainDumpView into the app render flow so it is not orphaned."
+        }
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "summary": "Use the existing deterministic local energy classifier to suggest an energy category for each brain-dump item and allow user overrides.",
+      "acceptanceCriteria": [
+        "Each brain-dump item can show a suggested energy category using the existing local deterministic classifier (no external AI calls).",
+        "The suggested category is displayed using the existing energy labels/colors (Deep Focus, Steady Work, Low Energy, No-Brain).",
+        "The user can override/change the category for an item before converting it into a task (using the same 4 categories)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/BrainDumpView.tsx",
+          "operation": "modify",
+          "description": "Integrate deterministic categorization by importing and using the existing local classifier from frontend/src/lib/taskEnergyClassifier.ts to compute a suggested category per item. Display the suggestion using the app’s existing energy labels/colors, and provide an in-UI control per item to override the category among DEEP/STEADY/LOW/NONE. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/FocusExecutionApp.jsx",
+          "operation": "modify",
+          "description": "Pass the existing ENERGY_LEVELS configuration into BrainDumpView so it can render category labels/colors consistently (Deep Focus, Steady Work, Low Energy, No-Brain), and ensure no external AI calls are introduced."
+        }
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "summary": "Convert one or multiple brain-dump items into Task objects and persist them into the existing tasks backlog local storage key.",
+      "acceptanceCriteria": [
+        "The user can add a single brain-dump item to the backlog and also perform a bulk add for all (or selected) items.",
+        "Converted tasks match the app’s existing Task model fields (id, title, why, energy, steps, estimatedMinutes, completedSteps, note, lastFriction) and appear in the Backlog view immediately after adding.",
+        "After adding items to the backlog, the Brain Dump list updates accordingly (e.g., removes moved items or clearly marks them as moved).",
+        "No changes are required to the backend canister for this feature; all behavior works client-side like the rest of the task system."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/BrainDumpView.tsx",
+          "operation": "modify",
+          "description": "Add per-item and bulk actions to convert items into tasks and push them into the app backlog via callbacks. Support adding a single item and bulk add for all/selected items, and update the Brain Dump list after successful add (e.g., remove moved items or mark them moved). Ensure the created tasks match the existing Task shape used by the app. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/FocusExecutionApp.jsx",
+          "operation": "modify",
+          "description": "Implement Brain Dump -> Backlog wiring: provide BrainDumpView with callbacks that create Task objects matching the app’s existing Task fields and append them to the in-memory backlog (which is already persisted to the 'tasks-backlog' storage key). Ensure the Backlog view reflects new tasks immediately after adding."
+        }
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "summary": "Persist and restore Brain Dump draft text and item list locally with graceful handling for missing/corrupted storage; support explicit clearing.",
+      "acceptanceCriteria": [
+        "Brain Dump content survives a full page refresh and is restored on app load.",
+        "Storage reads/writes are wrapped in try/catch and missing keys do not break the UI (consistent with existing storage helper behavior).",
+        "Clearing the Brain Dump (explicit user action) removes the stored draft/list and resets the UI state."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/FocusExecutionApp.jsx",
+          "operation": "modify",
+          "description": "Add Brain Dump storage keys (separate from 'tasks-backlog') and load/restore Brain Dump draft text and item list on mount using the existing getStorageItem/setStorageItem helpers (which already wrap JSON parse/write in try/catch). Persist draft/items on change, handle null returns gracefully, and provide a clear/reset action that removes the stored Brain Dump state and resets UI state."
+        },
+        {
+          "path": "frontend/src/components/BrainDumpView.tsx",
+          "operation": "modify",
+          "description": "Expose UI controls to clear the Brain Dump draft and items via props callbacks, and ensure the view initializes from restored draft/items passed from FocusExecutionApp. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

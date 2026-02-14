@@ -1,2 +1,3 @@
-# single-task-focus-execution-app-with-energy-based-backlog-timer-stats-and-fricti
-Exported from Caffeine project: Single-task Focus &amp; Execution app with energy-based backlog, timer, stats, and friction logging (persistent async storage)
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

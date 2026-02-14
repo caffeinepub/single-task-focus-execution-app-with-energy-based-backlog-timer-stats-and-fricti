@@ -1,0 +1,248 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 7,
+  "summary": "React-based Focus & Execution Management System: a single-task focus app that shows one task at a time, supports energy-based task selection, backlog management, timer, step checklist, notes, stats, friction logging, plus a home-page brain-dump intake that can be converted into tasks and categorized by the built-in assistant, all with persistent async storage.",
+  "architectural_notes": [
+    "Persist data via async window.storage with keys: 'current-task', 'tasks-backlog', 'current-energy', 'user-stats'.",
+    "Task model includes: id, title, why, energy, steps, estimatedMinutes, completedSteps, note, lastFriction{reason,timestamp}.",
+    "Stats model includes: completed, streak, totalTime (minutes).",
+    "UI should update optimistically and save in background; all storage operations wrapped in try/catch; missing keys handled gracefully.",
+    "Build as a single React .jsx artifact using hooks (useState/useEffect) and lucide-react icons."
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-implement-the-focus-execution-management-system-ui-as-a-single-react-artifact-file-one-jsx-file-that-contains-all-screens-and-modals-described-energy-selection-empty-state-current-task-view-backlog-view-add-task-modal-stats-dashboard-modal-and-friction-log-modal-with-user-facing-text-in-english",
+      "title": "Implement the Focus & Execution Management System UI as a single React artifact file (one .jsx file) that contains all screens and modals described: Energy Selection, Empty State, Current Task View, Backlog View, Add Task Modal, Stats Dashboard Modal, and Friction Log Modal, with user-facing text in English.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-the-specified-warm-calming-distraction-free-visual-theme-consistently-across-the-app-using-tailwind-css-color-palette-terracotta-e07a5f-warm-amber-f2a65a-soft-brown-c89f7e-muted-brown-8b7e74-background-gradient-f7f3e9-via-fdf8ed-to-f7f3e9-text-colors-3e3833-and-8b7355-soft-warm-shadows-rgba-139-115-85-0-08-0-12-and-smooth-animations-with-the-provided-cubic-bezier-easing",
+      "title": "Apply the specified warm, calming, distraction-free visual theme consistently across the app using Tailwind CSS: color palette (Terracotta #E07A5F, Warm amber #F2A65A, Soft brown #C89F7E, Muted brown #8B7E74), background gradient (#F7F3E9 via #FDF8ED to #F7F3E9), text colors (#3E3833 and #8B7355), soft warm shadows (rgba(139, 115, 85, 0.08–0.12)), and smooth animations with the provided cubic-bezier easing.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-full-client-side-data-model-and-persistence-using-the-specified-task-and-stats-object-shapes-and-the-specified-storage-keys-using-async-storage-operations-wrapped-in-try-catch-and-handling-missing-keys-gracefully-first-time-use",
+      "title": "Implement the full client-side data model and persistence using the specified Task and Stats object shapes and the specified storage keys, using async storage operations wrapped in try/catch and handling missing keys gracefully (first-time use).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-energy-selection-flow-with-four-energy-levels-deep-steady-low-none-using-lucide-react-icons-and-the-specified-colors-labels-descriptions-selecting-an-energy-sets-current-energy-and-filters-the-backlog-accordingly",
+      "title": "Implement the Energy Selection flow with four energy levels (DEEP, STEADY, LOW, NONE) using lucide-react icons and the specified colors/labels/descriptions; selecting an energy sets 'current-energy' and filters the backlog accordingly.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-empty-state-shown-when-an-energy-is-set-but-there-is-no-current-task-including-an-all-clear-message-with-a-plant-emoji-and-a-choose-next-task-action-that-opens-selects-from-backlog",
+      "title": "Implement the Empty State shown when an energy is set but there is no current task, including an 'All clear' message with a plant emoji and a 'Choose Next Task' action that opens/selects from backlog.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-current-task-view-single-task-focus-screen-with-timer-card-mm-ss-play-pause-reset-estimated-time-card-animated-progress-bar-steps-completed-why-this-matters-card-with-left-border-accent-large-centered-task-title-and-a-quick-note-feature-that-persists-to-the-current-task",
+      "title": "Implement the Current Task View (single-task focus screen) with: timer card (MM:SS + play/pause/reset), estimated time card, animated progress bar (% steps completed), 'Why this matters' card with left border accent, large centered task title, and a quick note feature that persists to the current task.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-execution-steps-checklist-for-the-current-task-each-step-renders-as-an-interactive-button-with-checkbox-animation-toggling-completion-updates-task-completedsteps-and-the-progress-bar-completed-steps-show-strikethrough-and-reduced-opacity-include-can-t-do-this-now-skip-and-complete-actions",
+      "title": "Implement the execution steps checklist for the current task: each step renders as an interactive button with checkbox animation; toggling completion updates task.completedSteps and the progress bar; completed steps show strikethrough and reduced opacity; include 'Can't do this now' (skip) and 'Complete!' actions.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-task-completion-behavior-on-complete-add-focused-time-to-stats-totaltime-in-minutes-increment-stats-completed-and-stats-streak-clear-current-task-and-prompt-the-user-to-choose-the-next-task-from-backlog",
+      "title": "Implement task completion behavior: on 'Complete!', add focused time to stats.totalTime (in minutes), increment stats.completed and stats.streak, clear 'current-task', and prompt the user to choose the next task from backlog.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-task-skipping-with-friction-logging-clicking-can-t-do-this-now-opens-the-friction-log-modal-with-the-six-preset-reasons-selecting-a-reason-saves-task-lastfriction-reason-timestamp-moves-the-task-back-to-tasks-backlog-resets-stats-streak-to-0-clears-current-task-and-persists-all-updates",
+      "title": "Implement task skipping with friction logging: clicking 'Can't do this now' opens the Friction Log modal with the six preset reasons; selecting a reason saves task.lastFriction {reason, timestamp}, moves the task back to 'tasks-backlog', resets stats.streak to 0, clears 'current-task', and persists all updates.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-backlog-view-with-header-title-description-add-task-button-energy-filter-chips-all-tasks-4-energy-levels-with-active-highlight-using-energy-colors-and-a-list-of-task-cards-showing-title-why-energy-badge-time-estimate-step-count-last-friction-indicator-and-a-chevron-selecting-a-task-sets-it-as-current-task-and-removes-it-from-tasks-backlog",
+      "title": "Implement Backlog View with: header (title/description), 'Add Task' button, energy filter chips (All Tasks + 4 energy levels) with active highlight using energy colors, and a list of task cards showing title, why, energy badge, time estimate, step count, last friction indicator, and a chevron. Selecting a task sets it as 'current-task' and removes it from 'tasks-backlog'.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-add-task-modal-form-with-fields-and-validation-required-task-title-optional-why-estimated-time-number-input-default-30-energy-selector-2x2-grid-dynamic-steps-array-add-remove-and-cancel-add-buttons-on-add-create-a-task-object-matching-the-required-shape-including-id-completedsteps-default-empty-note-default-empty-lastfriction-default-unset-empty-and-persist-it-into-tasks-backlog",
+      "title": "Implement the Add Task Modal form with fields and validation: required Task title, optional why, estimated time (number input default 30), energy selector (2x2 grid), dynamic steps array (add/remove), and Cancel/Add buttons. On Add, create a Task object matching the required shape (including id, completedSteps default empty, note default empty, lastFriction default unset/empty) and persist it into 'tasks-backlog'.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-stats-dashboard-modal-and-header-elements-header-includes-focus-title-streak-badge-award-icon-when-streak-0-current-energy-indicator-stats-button-trendingup-icon-and-backlog-button-with-task-count-menu-icon-stats-modal-shows-three-stat-cards-tasks-completed-with-target-icon-current-streak-with-award-icon-time-focused-in-minutes-with-clock-icon-each-with-gradient-background-matching-stat-type",
+      "title": "Implement the Stats Dashboard Modal and header elements: header includes 'Focus' title, streak badge (Award icon) when streak > 0, current energy indicator, Stats button (TrendingUp icon), and Backlog button with task count (Menu icon). Stats modal shows three stat cards (Tasks Completed with Target icon, Current Streak with Award icon, Time Focused in minutes with Clock icon) each with gradient background matching stat type.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-responsive-layout-and-interaction-polish-max-width-centered-containers-hover-states-on-all-buttons-with-scale-transforms-1-02-1-05-page-load-slide-up-animation-0-6s-cubic-bezier-0-34-1-56-0-64-1-modal-fade-in-scale-in-and-staggered-list-item-entrance-animations-index-0-05s-or-0-1s",
+      "title": "Ensure responsive layout and interaction polish: max-width centered containers, hover states on all buttons with scale transforms (1.02–1.05), page-load slide-up animation (0.6s cubic-bezier(0.34, 1.56, 0.64, 1)), modal fade-in + scale-in, and staggered list-item entrance animations (index * 0.05s or 0.1s).",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-in-app-chatbot-style-assistant-that-suggests-which-energy-category-deep-focus-steady-work-low-energy-no-brain-a-task-should-be-placed-into-based-on-the-task-text-the-user-provides",
+      "title": "Add an in-app chatbot-style assistant that suggests which energy category (Deep Focus, Steady Work, Low Energy, No-Brain) a task should be placed into based on the task text the user provides.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-the-assistant-into-the-existing-task-creation-flow-so-the-user-can-apply-the-suggested-category-to-the-task-they-are-adding-without-retyping-it",
+      "title": "Integrate the assistant into the existing task creation flow so the user can apply the suggested category to the task they are adding without retyping it.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-categorization-logic-locally-without-external-ai-llm-calls-using-transparent-deterministic-heuristics-that-map-task-text-to-one-of-the-four-energy-categories",
+      "title": "Implement the categorization logic locally (without external AI/LLM calls) using transparent, deterministic heuristics that map task text to one of the four energy categories.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-brain-dump-view-section-accessible-from-the-main-home-screen-the-same-top-level-area-as-the-current-main-and-backlog-views-that-lets-the-user-paste-type-a-freeform-brain-dump-and-turns-it-into-individual-brain-dump-items",
+      "title": "Add a new Brain Dump view/section accessible from the main home screen (the same top-level area as the current 'main' and 'backlog' views) that lets the user paste/type a freeform brain dump and turns it into individual brain-dump items.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-the-existing-local-energy-categorization-assistant-heuristics-into-the-brain-dump-list-so-each-brain-dump-item-can-be-categorized-into-one-of-the-four-existing-energy-categories-deep-steady-low-none-and-show-the-suggested-category-per-item",
+      "title": "Integrate the existing local energy categorization assistant/heuristics into the Brain Dump list so each brain-dump item can be categorized into one of the four existing energy categories (DEEP, STEADY, LOW, NONE) and show the suggested category per item.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-allow-moving-one-or-multiple-brain-dump-items-into-the-existing-tasks-backlog-by-converting-them-into-task-objects-that-match-the-current-task-shape-used-in-the-app-and-persisting-them-into-the-existing-tasks-backlog-storage-key",
+      "title": "Allow moving one or multiple brain-dump items into the existing tasks backlog by converting them into Task objects that match the current Task shape used in the app and persisting them into the existing 'tasks-backlog' storage key.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-persist-brain-dump-draft-text-and-or-the-brain-dump-item-list-locally-so-the-user-does-not-lose-their-brain-dump-if-they-refresh-the-page-and-restore-it-on-load-with-graceful-handling-if-the-key-is-missing-or-corrupted",
+      "title": "Persist Brain Dump draft text and/or the Brain Dump item list locally so the user does not lose their brain dump if they refresh the page, and restore it on load with graceful handling if the key is missing or corrupted.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Single-task focus UI with current task view (title, why, steps checklist, notes, progress, complete/skip actions)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Energy selection flow (4 energy levels with icons/colors) that filters tasks and persists current energy",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Backlog view with energy filters, task cards, and ability to select a task as current (removing from backlog)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Timer component (play/pause/reset, MM:SS) and add focused time to stats upon completion",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add Task modal with form fields (title, why, estimated time, energy, dynamic steps)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Stats dashboard modal (completed tasks, streak, total time)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Friction log modal on skip with preset reasons; logs friction and resets streak; returns task to backlog",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Persistent storage layer using async window.storage API with graceful missing-key handling and try/catch",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Warm, calming visual design system (colors, fonts, shadows) with smooth animations and responsive layout",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "AI chatbot/assistant that classifies a task into an energy category (Deep Focus, Steady Work, Low Energy, No Brain)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Home-page Brain Dump page/section: capture freeform brain dump items, convert them into tasks list/backlog entries, and use the in-app assistant to help categorize items into energy categories before adding",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Single-task Focus & Execution app with energy-based backlog, timer, stats, and friction logging (persistent async storage)",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

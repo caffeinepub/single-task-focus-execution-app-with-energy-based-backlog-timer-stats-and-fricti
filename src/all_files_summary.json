@@ -1,0 +1,18 @@
+{
+  "backend/main.mo": "Empty Motoko actor with no methods or state.",
+  "feature_evidence.json": "Metadata file listing implemented features, related frontend files, components, tests, and confidence levels.",
+  "frontend-file-summaries.txt": "Prewritten summaries describing the purpose of each frontend file.",
+  "frontend/index.css": "Tailwind base and theme variables defining light/dark color tokens and global styles.",
+  "frontend/index.html": "HTML entry point loading fonts and mounting the React app.",
+  "frontend/src/App.tsx": "Simple wrapper that renders FocusExecutionApp.",
+  "frontend/src/components/BrainDumpView.tsx": "Transforms draft text into categorized brain-dump items with editing, selection, and backlog export.",
+  "frontend/src/components/TaskEnergyAssistant.tsx": "Interactive assistant that classifies task energy and provides suggestions via chat-style UI.",
+  "frontend/src/FocusExecutionApp.jsx": "Main React app handling energy selection, tasks, timer, stats, and Brain Dump with local storage persistence.",
+  "frontend/src/hooks/useActor.ts": "Hook creating and refreshing a backend actor based on Internet Identity authentication.",
+  "frontend/src/hooks/useInternetIdentity.ts": "Provides a React context and provider for managing Internet Identity authentication, handling identity load, login, logout, and status tracking.",
+  "frontend/src/index.css": "Defines global Tailwind CSS styles, warm theme variables, typography, and custom animations.",
+  "frontend/src/lib/taskEnergyClassifier.ts": "Implements a local keyword-based classifier that assigns an energy category to a task with confidence and explanation.",
+  "frontend/src/main.tsx": "Bootstraps the React app, wrapping it with React Query and the Internet Identity provider.",
+  "frontend/tailwind.config.js": "Configures Tailwind with dark mode, custom OKLCH theme colors, shadows, animations, and plugin integrations.",
+  "project_state.json": "Describes the project’s state, architecture, features, and requirements for a React-based task management system."
+}
