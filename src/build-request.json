@@ -1,67 +1,41 @@
 {
   "kind": "build_request",
-  "title": "Simplify Brain Dump: remove Energy Assistant button and focus on splitting brain-dump points into distinct tasks",
+  "title": "Ensure Add Task supports manual entry with selectable energy categories",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-28",
-      "text": "Remove the Energy Assistant action/button from the Brain Dump view UI and replace it with a simple conversion action that only converts the Brain Dump draft text into multiple distinct task items (using the existing local deterministic extraction logic).",
+      "id": "REQ-30",
+      "text": "Ensure the “Add Task” button flow allows users to manually create a task and explicitly choose its category (energy type) from the four existing categories (DEEP, STEADY, LOW, NONE), and that the selected category is saved on the task and reflected in backlog filtering.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "In Brain dump i dont need energy assistant button but i need ai to look at brain dump points to convert them into individual distinct multiple tasks"
+          "For add task button, ensure that i can add tasks manually and put them in various categories"
         ]
       },
       "acceptanceCriteria": [
-        "In the Brain Dump view, there is no button labeled \"Energy Assistant\".",
-        "The Brain Dump draft input section includes a single primary action with neutral wording such as \"Convert to Tasks\" (English user-facing text).",
-        "Clicking the conversion action takes the current draft text and produces multiple individual Brain Dump items when the text contains common multi-task patterns (bullets, numbered lists, semicolons, or multi-clause sentences).",
-        "The conversion continues to work fully offline and without any external AI/LLM calls."
-      ]
-    },
-    {
-      "id": "REQ-29",
-      "text": "Update Brain Dump view helper copy to remove references to an “Energy Assistant” and describe the conversion behavior as splitting the brain dump into individual tasks (English user-facing text).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "In Brain dump i dont need energy assistant button..."
-        ]
-      },
-      "acceptanceCriteria": [
-        "The Brain Dump description text no longer mentions \"Energy Assistant\".",
-        "The updated helper text clearly tells the user that the app will split the brain dump into individual tasks (in English)."
+        "From the Backlog view, the user can open the Add Task modal and manually enter a task title and other fields (without using Brain Dump).",
+        "The Add Task modal provides a clear category/energy selector with the four existing energy categories (DEEP, STEADY, LOW, NONE).",
+        "When the user selects a category and adds the task, the created task is persisted into the existing backlog storage and has its energy/category set to the selected value.",
+        "The newly added task appears in the backlog list with its category indicated, and it is included/excluded appropriately when backlog energy filter chips are toggled.",
+        "No user-facing text added or updated for this change uses non-English language."
       ]
     }
   ],
   "constraints": [
-    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
-    "Do not add any external AI/LLM API calls; keep Brain Dump parsing local and deterministic.",
-    "Respect the existing warm, calming theme and existing Brain Dump layout patterns."
+    "Do not modify files under frontend/src/components/ui (read-only UI component sources must be composed, not edited).",
+    "Do not modify any frontend immutable paths listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
+    "Keep the existing four-category energy model (DEEP, STEADY, LOW, NONE) unchanged."
   ],
   "nonGoals": [
-    "Do not add new backend (Motoko) APIs or persistence mechanisms for this change.",
-    "Do not remove the Brain Dump feature itself, microphone input, or the ability to edit extracted items.",
-    "Do not redesign energy categorization across the app beyond removing the Brain Dump “Energy Assistant” button and related copy."
+    "Adding new categories beyond the existing four energy types.",
+    "Adding backend persistence or server-side storage for tasks (this change remains client-side/local persistence).",
+    "Introducing external AI/LLM calls for categorization."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

@@ -1,42 +1,33 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Brain Dump: replace Energy Assistant with offline Convert to Tasks and update helper copy",
+  "title": "Manual Add Task with explicit energy category selection",
   "requirements": [
     {
-      "id": "REQ-28",
-      "summary": "Remove the Energy Assistant action from Brain Dump and provide a single offline, deterministic “Convert to Tasks” action that splits draft text into multiple Brain Dump items.",
+      "id": "REQ-30",
+      "summary": "Enable manual task creation from Backlog with a 4-category energy selector, persist selected energy on the task, and ensure backlog list/filtering reflects it.",
       "acceptanceCriteria": [
-        "In the Brain Dump view, there is no button labeled \"Energy Assistant\".",
-        "The Brain Dump draft input section includes a single primary action with neutral wording such as \"Convert to Tasks\" (English user-facing text).",
-        "Clicking the conversion action takes the current draft text and produces multiple individual Brain Dump items when the text contains common multi-task patterns (bullets, numbered lists, semicolons, or multi-clause sentences).",
-        "The conversion continues to work fully offline and without any external AI/LLM calls."
+        "From the Backlog view, the user can open the Add Task modal and manually enter a task title and other fields (without using Brain Dump).",
+        "The Add Task modal provides a clear category/energy selector with the four existing energy categories (DEEP, STEADY, LOW, NONE).",
+        "When the user selects a category and adds the task, the created task is persisted into the existing backlog storage and has its energy/category set to the selected value.",
+        "The newly added task appears in the backlog list with its category indicated, and it is included/excluded appropriately when backlog energy filter chips are toggled.",
+        "No user-facing text added or updated for this change uses non-English language."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/BrainDumpView.tsx",
-          "operation": "modify",
-          "description": "Replace the draft action/button labeled \"Energy Assistant\" with a single primary action labeled \"Convert to Tasks\"; rename related handler(s) accordingly, ensure the action uses the existing local deterministic extraction logic (extractTasksFromBrainDump) to create multiple Brain Dump items from the current draft text, and ensure no external AI/LLM calls are introduced."
+          "path": "frontend/src/components/AddTaskModal.tsx",
+          "operation": "create",
+          "description": "Create a dedicated Add Task modal component for manual entry (title, why, steps, estimate) and an explicit energy selector limited to the existing 4 categories (DEEP, STEADY, LOW, NONE). Use shadcn-ui composed components (e.g., Dialog/Modal + Input/Textarea/Buttons/Select-like controls) to implement the modal UI without editing read-only UI sources. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/lib/brainDumpTaskExtractor.ts",
-          "operation": "modify",
-          "description": "Refine/extend the deterministic splitting heuristics (still fully offline) to better handle common multi-task patterns called out in the requirement (e.g., multi-clause sentences and separators), while keeping the logic conservative to avoid over-splitting."
-        }
-      ]
-    },
-    {
-      "id": "REQ-29",
-      "summary": "Update Brain Dump helper/description copy to remove Energy Assistant references and explain that the draft will be split into individual tasks.",
-      "acceptanceCriteria": [
-        "The Brain Dump description text no longer mentions \"Energy Assistant\".",
-        "The updated helper text clearly tells the user that the app will split the brain dump into individual tasks (in English)."
-      ],
-      "file_operations": [
+          "path": "frontend/src/components/EnergyCategorySelector.tsx",
+          "operation": "create",
+          "description": "Add a small reusable selector UI for the four existing energy categories that can render as chips/buttons using provided energyLevels metadata (label/color/icon) and returns the selected key. Keep the energy model unchanged. Use shadcn-ui composed primitives as needed (e.g., ToggleGroup/Buttons) without modifying frontend/src/components/ui. Verify the component's usage instructions before implementing."
+        },
         {
-          "path": "frontend/src/components/BrainDumpView.tsx",
+          "path": "frontend/src/FocusExecutionApp.jsx",
           "operation": "modify",
-          "description": "Update the Brain Dump draft section helper/description text to remove references to an “Energy Assistant” and clearly describe the conversion behavior as splitting the brain dump into individual tasks (English user-facing text), preserving the existing warm, calming tone and layout patterns."
+          "description": "Wire the manual Add Task flow from the Backlog view to open the new AddTaskModal; ensure the modal passes the selected energy key through to the existing handleAddTask flow so tasks are saved with the chosen energy in local backlog persistence. Ensure backlog rows visibly indicate each task’s energy (using ENERGY_LEVELS metadata) and that the existing backlog energy filter chips continue to include/exclude newly created tasks based on task.energy."
         }
       ]
     }

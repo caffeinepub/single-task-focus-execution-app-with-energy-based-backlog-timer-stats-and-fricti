@@ -2,10 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-energy-assistant-action-button-from-the-brain-dump-view-ui-and-replace-it-with-a-simple-conversion-action-that-only-converts-the-brain-dump-draft-text-into-multiple-distinct-task-items-using-the-existing-local-deterministic-extraction-logic",
-      "featureTitle": "Remove the Energy Assistant action/button from the Brain Dump view UI and replace it with a simple conversion action that only converts the Brain Dump draft text into multiple distinct task items (using the existing local deterministic extraction logic).",
+      "featureId": "feature-ensure-the-add-task-button-flow-allows-users-to-manually-create-a-task-and-explicitly-choose-its-category-energy-type-from-the-four-existing-categories-deep-steady-low-none-and-that-the-selected-category-is-saved-on-the-task-and-reflected-in-backlog-filtering",
+      "featureTitle": "Ensure the “Add Task” button flow allows users to manually create a task and explicitly choose its category (energy type) from the four existing categories (DEEP, STEADY, LOW, NONE), and that the selected category is saved on the task and reflected in backlog filtering.",
       "files": [
-        "frontend/src/components/BrainDumpView.tsx"
+        "frontend/src/FocusExecutionApp.jsx",
+        "frontend/src/components/AddTaskModal.tsx",
+        "frontend/src/components/EnergyCategorySelector.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -15,25 +17,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-28"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-brain-dump-view-helper-copy-to-remove-references-to-an-energy-assistant-and-describe-the-conversion-behavior-as-splitting-the-brain-dump-into-individual-tasks-english-user-facing-text",
-      "featureTitle": "Update Brain Dump view helper copy to remove references to an “Energy Assistant” and describe the conversion behavior as splitting the brain dump into individual tasks (English user-facing text).",
-      "files": [
-        "frontend/src/components/BrainDumpView.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-29"
+        "REQ-30"
       ],
       "confidence": "high"
     }

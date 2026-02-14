@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 21,
+  "projectStateVersion": 23,
   "summary": "React-based Focus & Execution Management System: a single-task focus app that shows one task at a time, supports energy-based task selection, backlog management, timer, step checklist, notes, stats, friction logging, plus a home-page brain-dump intake that can be converted into tasks; now includes AI-assisted parsing to turn freeform brain dumps into individual task items, with optional assistant-based categorization, all with persistent async storage.",
   "architectural_notes": [
     "Persist data via async window.storage with keys: 'current-task', 'tasks-backlog', 'current-energy', 'user-stats'.",
@@ -246,6 +246,14 @@
       "title": "Update Brain Dump view helper copy to remove references to an “Energy Assistant” and describe the conversion behavior as splitting the brain dump into individual tasks (English user-facing text).",
       "reqIds": [
         "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-add-task-button-flow-allows-users-to-manually-create-a-task-and-explicitly-choose-its-category-energy-type-from-the-four-existing-categories-deep-steady-low-none-and-that-the-selected-category-is-saved-on-the-task-and-reflected-in-backlog-filtering",
+      "title": "Ensure the “Add Task” button flow allows users to manually create a task and explicitly choose its category (energy type) from the four existing categories (DEEP, STEADY, LOW, NONE), and that the selected category is saved on the task and reflected in backlog filtering.",
+      "reqIds": [
+        "REQ-30"
       ],
       "version": 1
     }

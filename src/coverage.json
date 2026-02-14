@@ -1,36 +1,28 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T13:41:15.343Z",
+  "generatedAt": "2026-02-14T13:48:56.203Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-28",
-        "summary": "Remove the Energy Assistant action/button from the Brain Dump view UI and replace it with a simple conversion action that only converts the Brain Dump draft text into multiple distinct task items (using the existing local deterministic extraction logic).",
+        "id": "REQ-30",
+        "summary": "Ensure the “Add Task” button flow allows users to manually create a task and explicitly choose its category (energy type) from the four existing categories (DEEP, STEADY, LOW, NONE), and that the selected category is saved on the task and reflected in backlog filtering.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/BrainDumpView.tsx",
-          "frontend/src/lib/brainDumpTaskExtractor.ts"
+          "frontend/src/components/AddTaskModal.tsx",
+          "frontend/src/components/EnergyCategorySelector.tsx",
+          "frontend/src/FocusExecutionApp.jsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/BrainDumpView.tsx"
-        ]
-      },
-      {
-        "id": "REQ-29",
-        "summary": "Update Brain Dump view helper copy to remove references to an “Energy Assistant” and describe the conversion behavior as splitting the brain dump into individual tasks (English user-facing text).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/BrainDumpView.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/BrainDumpView.tsx"
+          "frontend/src/components/AddTaskModal.tsx",
+          "frontend/src/components/EnergyCategorySelector.tsx",
+          "frontend/src/FocusExecutionApp.jsx"
         ]
       }
     ]
@@ -40,7 +32,9 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/BrainDumpView.tsx",
+    "frontend/src/FocusExecutionApp.jsx",
+    "frontend/src/components/AddTaskModal.tsx",
+    "frontend/src/components/EnergyCategorySelector.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
